@@ -1,0 +1,31 @@
+{
+  "date_created": "2026-04-23T13:55:07.013834",
+  "observations": 192,
+  "alcaldias_included": [
+    "Azcapotzalco",
+    "Benito Juarez",
+    "Coyoacan",
+    "Cuajimalpa de Morelos",
+    "Cuauhtemoc",
+    "Gustavo A. Madero",
+    "Iztacalco",
+    "Iztapalapa",
+    "Miguel Hidalgo",
+    "Milpa Alta",
+    "Tlalpan",
+    "Venustiano Carranza",
+    "Xochimilco",
+    "Alvaro Obregon"
+  ],
+  "alcaldias_excluded": [
+    "La Magdalena Contreras",
+    "Tlahuac"
+  ],
+  "models": {
+    "twoway_fe": {
+      "coef": 2.1015348069192514,
+      "se": 1.2393882334838078,
+      "p_value": 0.08995735845553979
+    }
+  }
+}

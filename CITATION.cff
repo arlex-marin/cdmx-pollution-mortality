@@ -1,0 +1,51 @@
+cff-version: 1.2.0
+message: "If you use this software, please cite it as below."
+title: "Geospatial Analysis of Air Pollution and Cancer Mortality in Mexico City"
+version: 1.0.0
+date-released: 2026-04-23
+authors:
+  - family-names: Marín
+    given-names: Arlex
+    email: arlex.marin@gmail.com
+repository-code: "https://github.com/arlex-marin/cdmx-pollution-mortality"
+abstract: "A comprehensive analysis investigating the spatial and temporal relationship between long-term air pollutant exposure and lung cancer mortality across 16 alcaldías of Mexico City (2004-2022). Integrates harmonized population estimates from four national censuses, individual-level mortality records, and air quality monitoring data from 35 stations."
+keywords:
+  - "air pollution"
+  - "PM2.5"
+  - "lung cancer"
+  - "mortality"
+  - "Mexico City"
+  - "CDMX"
+  - "epidemiology"
+  - "environmental health"
+  - "public health"
+  - "geospatial analysis"
+  - "panel regression"
+  - "age standardization"
+  - "health disparities"
+  - "environmental justice"
+license: CC-BY-4.0
+type: software
+identifiers:
+  - type: doi
+    value: 10.5281/zenodo.19712907
+    description: "Processed dataset on Zenodo"
+  - type: url
+    value: "https://github.com/arlex-marin/cdmx-pollution-mortality"
+    description: "Source code repository"
+references:
+  - type: dataset
+    title: "Processed Data: Air Pollution and Lung Cancer Mortality in Mexico City (2004-2022)"
+    authors:
+      - family-names: Marín-García
+        given-names: Arlex
+    year: 2026
+    doi: 10.5281/zenodo.19712907
+    publisher: Zenodo
+  - type: dataset
+    title: "Air Pollution and Cancer Mortality Dataset - Mexico City"
+    authors:
+      - name: Crespo-Sanchez, Melesio
+    year: 2024
+    doi: 10.5281/zenodo.10894651
+    publisher: Zenodo
