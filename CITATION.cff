@@ -28,7 +28,7 @@ license: CC-BY-4.0
 type: software
 identifiers:
   - type: doi
-    value: 10.5281/zenodo.19712907
+    value: 10.5281/zenodo.19712908
     description: "Processed dataset on Zenodo"
   - type: url
     value: "https://github.com/arlex-marin/cdmx-pollution-mortality"
@@ -40,7 +40,7 @@ references:
       - family-names: Marín-García
         given-names: Arlex
     year: 2026
-    doi: 10.5281/zenodo.19712907
+    doi: 10.5281/zenodo.19712908
     publisher: Zenodo
   - type: dataset
     title: "Air Pollution and Cancer Mortality Dataset - Mexico City"

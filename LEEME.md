@@ -332,10 +332,10 @@ Si utiliza este código o datos en su investigación, por favor cite:
 > Marín, A. (2026). *Análisis Geoespacial de Contaminación del Aire y Mortalidad por Cáncer en la Ciudad de México* (Versión 1.0.0) [Código fuente]. GitHub. https://github.com/arlex-marin/cdmx-pollution-mortality
 
 **Datos:**
-> Marín, A. (2026). *Datos Procesados: Contaminación del Aire y Mortalidad por Cáncer de Pulmón en la Ciudad de México* (Versión 1.0.0) [Conjunto de datos]. Zenodo. https://doi.org/10.5281/zenodo.19712907
+> Marín, A. (2026). *Datos Procesados: Contaminación del Aire y Mortalidad por Cáncer de Pulmón en la Ciudad de México* (Versión 1.0.0) [Conjunto de datos]. Zenodo. https://doi.org/10.5281/zenodo.19712908
 
 **Informe:**
-> Marín, A. (2026). *Informe Final: Análisis Geoespacial de Contaminación del Aire y Mortalidad por Cáncer en la Ciudad de México* (Versión 1.0). Zenodo. https://doi.org/10.5281/zenodo.19712907
+> Marín, A. (2026). *Informe Final: Análisis Geoespacial de Contaminación del Aire y Mortalidad por Cáncer en la Ciudad de México* (Versión 1.0). Zenodo. https://doi.org/10.5281/zenodo.19712908
 
 ---
 

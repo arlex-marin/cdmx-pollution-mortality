@@ -481,7 +481,7 @@ Este estudio proporciona evidencia robusta a nivel poblacional de una asociació
 
 El conjunto de datos procesado completo está disponible en Zenodo:
 
-> Marín-García, A. (2026). *Datos Procesados: Contaminación del Aire y Mortalidad por Cáncer de Pulmón en la Ciudad de México* (Versión 1.0.0) [Conjunto de datos]. Zenodo. https://doi.org/10.5281/zenodo.19712907
+> Marín-García, A. (2026). *Datos Procesados: Contaminación del Aire y Mortalidad por Cáncer de Pulmón en la Ciudad de México* (Versión 1.0.0) [Conjunto de datos]. Zenodo. https://doi.org/10.5281/zenodo.19712908
 
 ### 6.2 Código de Análisis
 
@@ -539,7 +539,7 @@ El autor reconoce a los siguientes proveedores de datos:
 Este informe y todos los materiales asociados están licenciados bajo la **Licencia Creative Commons Atribución 4.0 Internacional (CC BY 4.0)**.
 
 **Citación:**
-> Marín-García, A. (2026). *Informe Final: Análisis Geoespacial de Contaminación del Aire y Mortalidad por Cáncer en la Ciudad de México* (Versión 1.0). Zenodo. https://doi.org/10.5281/zenodo.19712907
+> Marín-García, A. (2026). *Informe Final: Análisis Geoespacial de Contaminación del Aire y Mortalidad por Cáncer en la Ciudad de México* (Versión 1.0). Zenodo. https://doi.org/10.5281/zenodo.19712908
 
 ---
 

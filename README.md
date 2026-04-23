@@ -332,10 +332,10 @@ If you use this code or data in your research, please cite:
 > Marín, A. (2026). *Geospatial Analysis of Air Pollution and Cancer Mortality in Mexico City* (Version 1.0.0) [Source code]. GitHub. https://github.com/arlex-marin/cdmx-pollution-mortality
 
 **Data:**
-> Marín, A. (2026). *Processed Data: Air Pollution and Lung Cancer Mortality in Mexico City* (Version 1.0.0) [Data set]. Zenodo. https://doi.org/10.5281/zenodo.19712907
+> Marín, A. (2026). *Processed Data: Air Pollution and Lung Cancer Mortality in Mexico City* (Version 1.0.0) [Data set]. Zenodo. https://doi.org/10.5281/zenodo.19712908
 
 **Report:**
-> Marín, A. (2026). *Final Report: Geospatial Analysis of Air Pollution and Cancer Mortality in Mexico City* (Version 1.0). Zenodo. https://doi.org/10.5281/zenodo.19712907
+> Marín, A. (2026). *Final Report: Geospatial Analysis of Air Pollution and Cancer Mortality in Mexico City* (Version 1.0). Zenodo. https://doi.org/10.5281/zenodo.19712908
 
 ---
 
