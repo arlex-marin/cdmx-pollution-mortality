@@ -6,16 +6,16 @@ Date: April 2026
 Updated: April 21, 2026 - Fixed logging directory creation, added np.bool_ JSON serialization
 """
 
-import sys
-import pandas as pd
-import numpy as np
-from pathlib import Path
-from datetime import datetime
 import json
+import logging
+import sys
 import unicodedata
 import warnings
+from datetime import datetime
 from pathlib import Path
-import logging
+
+import numpy as np
+import pandas as pd
 
 logger = logging.getLogger(__name__)
 
@@ -24,11 +24,11 @@ def get_project_root() -> Path:
     """Return project root directory (parent of src/)."""
     return Path(__file__).parent.parent
 
+
 # Import all path constants from package __init__ (single source of truth)
-from . import (
-    PROJECT_ROOT, DATA_DIR, RAW_DATA_DIR, PROCESSED_DATA_DIR,
-    OUTPUTS_DIR, LOGS_DIR
-)
+from . import (DATA_DIR, LOGS_DIR, OUTPUTS_DIR, PROCESSED_DATA_DIR,
+               PROJECT_ROOT, RAW_DATA_DIR)
+
 
 def safe_int(value: object) -> int:
     """Safely convert value to integer, handling strings and special characters."""
@@ -38,7 +38,7 @@ def safe_int(value: object) -> int:
         return int(value)
     if isinstance(value, str):
         value = value.strip()
-        if value in ['*', '', 'N/D', 'NA', 'N.D.']:
+        if value in ["*", "", "N/D", "NA", "N.D."]:
             return 0
         try:
             return int(float(value))
@@ -52,7 +52,7 @@ def normalize_string(s: object) -> str:
     if pd.isna(s):
         return ""
     s = str(s).strip()
-    s = unicodedata.normalize('NFKD', s).encode('ASCII', 'ignore').decode('ASCII')
+    s = unicodedata.normalize("NFKD", s).encode("ASCII", "ignore").decode("ASCII")
     return s.lower()
 
 
@@ -80,7 +80,9 @@ def format_pvalue(p: float) -> str:
         return f"p = {p:.3f}"
 
 
-def clamp_proportion(value: object, min_val: float = 0.0, max_val: float = 1.0, default: float = 0.52) -> float:
+def clamp_proportion(
+    value: object, min_val: float = 0.0, max_val: float = 1.0, default: float = 0.52
+) -> float:
     """Clamp a proportion value to valid range."""
     if pd.isna(value):
         return default
@@ -90,11 +92,11 @@ def clamp_proportion(value: object, min_val: float = 0.0, max_val: float = 1.0, 
 def read_csv_flexible(filepath, encodings_to_try=None):
     """Read CSV with flexible handling of inconsistent column counts."""
     if encodings_to_try is None:
-        encodings_to_try = ['utf-8', 'latin-1', 'cp1252', 'iso-8859-1']
+        encodings_to_try = ["utf-8", "latin-1", "cp1252", "iso-8859-1"]
 
     for encoding in encodings_to_try:
         try:
-            with open(filepath, 'r', encoding=encoding) as f:
+            with open(filepath, "r", encoding=encoding) as f:
                 lines = f.readlines()
 
             parsed_lines = []
@@ -102,7 +104,7 @@ def read_csv_flexible(filepath, encodings_to_try=None):
                 line = line.strip()
                 if not line:
                     continue
-                parts = line.split(',')
+                parts = line.split(",")
                 if i == 0:
                     header = [p.strip().strip('"') for p in parts]
                     expected_cols = len(header)
@@ -111,7 +113,7 @@ def read_csv_flexible(filepath, encodings_to_try=None):
                     if len(parts) > expected_cols:
                         parts = parts[:expected_cols]
                     elif len(parts) < expected_cols:
-                        parts.extend([''] * (expected_cols - len(parts)))
+                        parts.extend([""] * (expected_cols - len(parts)))
                     cleaned_parts = [p.strip().strip('"') for p in parts]
                     parsed_lines.append(cleaned_parts)
 
@@ -159,20 +161,24 @@ def read_csv_with_encoding(filepath, context="file", encodings_to_try=None):
     import warnings as _warnings
 
     if encodings_to_try is None:
-        encodings_to_try = ['utf-8', 'latin-1', 'cp1252', 'iso-8859-1']
+        encodings_to_try = ["utf-8", "latin-1", "cp1252", "iso-8859-1"]
 
     df = None
     successful_encoding = None
 
     for encoding in encodings_to_try:
         try:
-            df = pd.read_csv(filepath, encoding=encoding, engine='c', on_bad_lines='skip')
+            df = pd.read_csv(
+                filepath, encoding=encoding, engine="c", on_bad_lines="skip"
+            )
             successful_encoding = encoding
             break
         except UnicodeDecodeError:
             continue
         except Exception as e:
-            _warnings.warn(f"Unexpected error with encoding {encoding} for {context}: {e}")
+            _warnings.warn(
+                f"Unexpected error with encoding {encoding} for {context}: {e}"
+            )
             continue
 
     if df is None:
@@ -202,7 +208,7 @@ def setup_logging(prefix="analysis"):
 
     log_file = LOGS_DIR / f'{prefix}_{datetime.now().strftime("%Y%m%d_%H%M%S")}.log'
 
-    with open(log_file, 'w', encoding='utf-8') as f:
+    with open(log_file, "w", encoding="utf-8") as f:
         f.write("=" * 80 + "\n")
         f.write(f"Log started: {datetime.now().isoformat()}\n")
         f.write("=" * 80 + "\n\n")
@@ -212,6 +218,7 @@ def setup_logging(prefix="analysis"):
 
 def save_json(data: object, filepath: Path) -> None:
     """Save data as JSON with proper encoding."""
+
     def convert_to_serializable(obj):
         if isinstance(obj, (np.integer, np.int64)):
             return int(obj)
@@ -230,13 +237,13 @@ def save_json(data: object, filepath: Path) -> None:
         return obj
 
     data_serializable = convert_to_serializable(data)
-    with open(filepath, 'w', encoding='utf-8') as f:
+    with open(filepath, "w", encoding="utf-8") as f:
         json.dump(data_serializable, f, indent=2, ensure_ascii=False)
 
 
 def load_json(filepath: Path) -> dict:
     """Load JSON file."""
-    with open(filepath, 'r', encoding='utf-8') as f:
+    with open(filepath, "r", encoding="utf-8") as f:
         return json.load(f)
 
 
@@ -245,10 +252,10 @@ def get_census_file_path(year):
     from . import CENSUS_RAW_DIR
 
     file_map = {
-        2000: 'RESLOC2000_09_CDMX.csv',
-        2005: 'RESLOC2005_09_CDMX.csv',
-        2010: 'RESLOC2010_09_CDMX.csv',
-        2020: 'ITER2020_09_CDMX.csv'
+        2000: "RESLOC2000_09_CDMX.csv",
+        2005: "RESLOC2005_09_CDMX.csv",
+        2010: "RESLOC2010_09_CDMX.csv",
+        2020: "ITER2020_09_CDMX.csv",
     }
     return CENSUS_RAW_DIR / file_map[year]
 
@@ -256,89 +263,104 @@ def get_census_file_path(year):
 def get_mortality_file_path(year):
     """Get the path to a mortality file for a given year."""
     from . import MORTALITY_RAW_DIR
-    return MORTALITY_RAW_DIR / f'{year}.csv'
+
+    return MORTALITY_RAW_DIR / f"{year}.csv"
 
 
 def get_pollution_file_path():
     """Get the path to the pollution data file."""
     from . import POLLUTION_RAW_DIR
-    return POLLUTION_RAW_DIR / 'Alcaldias_contaminantes_Anual_geo_limpio_86-22.csv'
+
+    return POLLUTION_RAW_DIR / "Alcaldias_contaminantes_Anual_geo_limpio_86-22.csv"
 
 
 def get_population_processed_path():
     """Get the path to the harmonized population file."""
     from . import POPULATION_PROCESSED_DIR
-    return POPULATION_PROCESSED_DIR / 'cdmx_population_harmonized_2000_2022.csv'
+
+    return POPULATION_PROCESSED_DIR / "cdmx_population_harmonized_2000_2022.csv"
 
 
 def get_mortality_processed_path():
     """Get the path to the processed mortality file."""
     from . import MORTALITY_PROCESSED_DIR
-    return MORTALITY_PROCESSED_DIR / 'cdmx_lung_cancer_deaths_2000_2022.csv'
+
+    return MORTALITY_PROCESSED_DIR / "cdmx_lung_cancer_deaths_2000_2022.csv"
 
 
 def get_integrated_dataset_path():
     """Get the path to the final analytical dataset."""
     from . import INTEGRATED_PROCESSED_DIR
-    return INTEGRATED_PROCESSED_DIR / 'cdmx_analysis_dataset_2004_2022.csv'
+
+    return INTEGRATED_PROCESSED_DIR / "cdmx_analysis_dataset_2004_2022.csv"
 
 
 # Alcaldía codes for CDMX
 ALCALDIA_CODES = {
-    '002': 'Azcapotzalco',
-    '003': 'Coyoacan',
-    '004': 'Cuajimalpa de Morelos',
-    '005': 'Gustavo A. Madero',
-    '006': 'Iztacalco',
-    '007': 'Iztapalapa',
-    '008': 'La Magdalena Contreras',
-    '009': 'Milpa Alta',
-    '010': 'Alvaro Obregon',
-    '011': 'Tlahuac',
-    '012': 'Tlalpan',
-    '013': 'Xochimilco',
-    '014': 'Benito Juarez',
-    '015': 'Cuauhtemoc',
-    '016': 'Miguel Hidalgo',
-    '017': 'Venustiano Carranza'
+    "002": "Azcapotzalco",
+    "003": "Coyoacan",
+    "004": "Cuajimalpa de Morelos",
+    "005": "Gustavo A. Madero",
+    "006": "Iztacalco",
+    "007": "Iztapalapa",
+    "008": "La Magdalena Contreras",
+    "009": "Milpa Alta",
+    "010": "Alvaro Obregon",
+    "011": "Tlahuac",
+    "012": "Tlalpan",
+    "013": "Xochimilco",
+    "014": "Benito Juarez",
+    "015": "Cuauhtemoc",
+    "016": "Miguel Hidalgo",
+    "017": "Venustiano Carranza",
 }
 
 # Reverse mapping
 ALCALDIA_NAME_TO_CODE = {v: k for k, v in ALCALDIA_CODES.items()}
 
 # CDMX Entity Code
-CDMX_ENTIDAD = '09'
+CDMX_ENTIDAD = "09"
 CDMX_ENTIDAD_INT = 9
 
 # Harmonized age groups
-HARMONIZED_AGE_GROUPS = ['0-4', '5-14', '15-17', '18-24', '25-59', '60+']
+HARMONIZED_AGE_GROUPS = ["0-4", "5-14", "15-17", "18-24", "25-59", "60+"]
 
 # WHO Standard Population Weights
 WHO_WEIGHTS = {
-    '0-4': 0.0886,
-    '5-14': 0.1729,
-    '15-17': 0.0254,
-    '18-24': 0.0702,
-    '25-59': 0.5167,
-    '60+': 0.1262
+    "0-4": 0.0886,
+    "5-14": 0.1729,
+    "15-17": 0.0254,
+    "18-24": 0.0702,
+    "25-59": 0.5167,
+    "60+": 0.1262,
 }
 
 # ICD-10 codes for lung cancer
-LUNG_CANCER_CODES = ['C33', 'C34']
+LUNG_CANCER_CODES = ["C33", "C34"]
 
 # Pollutants available for analysis
-POLLUTANTS = ['pm25', 'pm10', 'o3', 'no2', 'so2', 'co']
+POLLUTANTS = ["pm25", "pm10", "o3", "no2", "so2", "co"]
 
 # Alcaldías with pollution data (from validation)
 ALCALDIAS_WITH_POLLUTION = [
-    'Azcapotzalco', 'Benito Juarez', 'Coyoacan', 'Cuajimalpa de Morelos',
-    'Cuauhtemoc', 'Gustavo A. Madero', 'Iztacalco', 'Iztapalapa',
-    'Miguel Hidalgo', 'Milpa Alta', 'Tlalpan', 'Venustiano Carranza',
-    'Xochimilco', 'Alvaro Obregon'
+    "Azcapotzalco",
+    "Benito Juarez",
+    "Coyoacan",
+    "Cuajimalpa de Morelos",
+    "Cuauhtemoc",
+    "Gustavo A. Madero",
+    "Iztacalco",
+    "Iztapalapa",
+    "Miguel Hidalgo",
+    "Milpa Alta",
+    "Tlalpan",
+    "Venustiano Carranza",
+    "Xochimilco",
+    "Alvaro Obregon",
 ]
 
 # Alcaldías without pollution data
-ALCALDIAS_WITHOUT_POLLUTION = ['La Magdalena Contreras', 'Tlahuac']
+ALCALDIAS_WITHOUT_POLLUTION = ["La Magdalena Contreras", "Tlahuac"]
 
 # Census years
 CENSUS_YEARS = [2000, 2005, 2010, 2020]

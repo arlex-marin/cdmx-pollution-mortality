@@ -59,8 +59,8 @@ jobs:
 
       - name: Check formatting with black
         run: |
-          black --check src/ tests/ 2>&1 || echo "black check completed (non-blocking)"
+          black --check --diff src/ tests/
 
       - name: Check import ordering with isort
         run: |
-          isort --check-only --diff src/ tests/ 2>&1 || echo "isort check completed (non-blocking)"
+          isort --check-only --diff src/ tests/

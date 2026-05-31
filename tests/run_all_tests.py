@@ -6,8 +6,8 @@ Author: Arlex Marín
 Date: April 2026
 """
 
-import unittest
 import sys
+import unittest
 from pathlib import Path
 
 # Add project root to path
@@ -21,16 +21,16 @@ def run_all_tests():
     print("RUNNING UNIT TESTS")
     print("Project 1: Air Pollution and Cancer Mortality in CDMX")
     print("=" * 70)
-    
+
     # Discover tests
     loader = unittest.TestLoader()
     start_dir = Path(__file__).parent
     suite = loader.discover(start_dir, pattern="test_*.py")
-    
+
     # Run tests
     runner = unittest.TextTestRunner(verbosity=2)
     result = runner.run(suite)
-    
+
     # Print summary
     print("\n" + "=" * 70)
     print("TEST SUMMARY")
@@ -39,7 +39,7 @@ def run_all_tests():
     print(f"Failures: {len(result.failures)}")
     print(f"Errors: {len(result.errors)}")
     print(f"Skipped: {len(result.skipped)}")
-    
+
     if result.wasSuccessful():
         print("\n✓ All tests passed!")
         return 0

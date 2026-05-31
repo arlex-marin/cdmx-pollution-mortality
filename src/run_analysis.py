@@ -40,28 +40,30 @@ Date: April 2026
 Version: 3.3 - Fixed import conflicts and shapefile paths
 """
 
-import os
-import sys
-import subprocess
-from pathlib import Path
-import json
-from datetime import datetime
 import argparse
+import json
+import os
+import subprocess
+import sys
+from datetime import datetime
+from pathlib import Path
 
 # Add project root to path
 PROJECT_ROOT = Path(__file__).parent.parent.resolve()
 sys.path.insert(0, str(PROJECT_ROOT))
 
-from src import ensure_directories, LOGS_DIR
+import logging
+
+from src import LOGS_DIR, ensure_directories
 from src.utils import setup_logging
 
-import logging
 logger = logging.getLogger(__name__)
 
 
 # =============================================================================
 # HELPER FUNCTIONS
 # =============================================================================
+
 
 def print_header(title):
     """Print a formatted header."""
@@ -104,31 +106,27 @@ def verify_analysis_outputs():
     logger.info("VERIFYING ANALYSIS OUTPUTS")
     logger.info("-" * 60)
 
-    from src import FIGURES_DIR, TABLES_DIR, MODELS_DIR
+    from src import FIGURES_DIR, MODELS_DIR, TABLES_DIR
 
-    output_summary = {
-        'figures': [],
-        'tables': [],
-        'models': []
-    }
+    output_summary = {"figures": [], "tables": [], "models": []}
 
     if FIGURES_DIR.exists():
-        figures = list(FIGURES_DIR.glob('*.png'))
-        output_summary['figures'] = [f.name for f in figures]
+        figures = list(FIGURES_DIR.glob("*.png"))
+        output_summary["figures"] = [f.name for f in figures]
         logger.info(f"Figures ({len(figures)}):")
         for f in sorted(figures):
             logger.info(f"- {f.name}")
 
     if TABLES_DIR.exists():
-        tables = list(TABLES_DIR.glob('*.csv'))
-        output_summary['tables'] = [t.name for t in tables]
+        tables = list(TABLES_DIR.glob("*.csv"))
+        output_summary["tables"] = [t.name for t in tables]
         logger.info(f"Tables ({len(tables)}):")
         for t in sorted(tables):
             logger.info(f"- {t.name}")
 
     if MODELS_DIR.exists():
-        models = list(MODELS_DIR.glob('*.txt'))
-        output_summary['models'] = [m.name for m in models]
+        models = list(MODELS_DIR.glob("*.txt"))
+        output_summary["models"] = [m.name for m in models]
         logger.info(f"Models ({len(models)}):")
         for m in sorted(models):
             logger.info(f"- {m.name}")
@@ -145,21 +143,21 @@ def verify_geospatial_outputs():
     from src import FIGURES_DIR
 
     geospatial_files = {
-        'html': list(FIGURES_DIR.glob('*.html')),
-        'png': list(FIGURES_DIR.glob('choropleth_*.png')),
-        'bivariate': list(FIGURES_DIR.glob('bivariate_*.png'))
+        "html": list(FIGURES_DIR.glob("*.html")),
+        "png": list(FIGURES_DIR.glob("choropleth_*.png")),
+        "bivariate": list(FIGURES_DIR.glob("bivariate_*.png")),
     }
 
     logger.info(f"Interactive HTML maps ({len(geospatial_files['html'])}):")
-    for f in sorted(geospatial_files['html']):
+    for f in sorted(geospatial_files["html"]):
         logger.info(f"- {f.name}")
 
     logger.info(f"Static PNG maps ({len(geospatial_files['png'])}):")
-    for f in sorted(geospatial_files['png']):
+    for f in sorted(geospatial_files["png"]):
         logger.info(f"- {f.name}")
 
     logger.info(f"Bivariate maps ({len(geospatial_files['bivariate'])}):")
-    for f in sorted(geospatial_files['bivariate']):
+    for f in sorted(geospatial_files["bivariate"]):
         logger.info(f"- {f.name}")
 
     return geospatial_files
@@ -190,17 +188,20 @@ def print_execution_summary(results):
 # PHASE FUNCTIONS
 # =============================================================================
 
+
 def phase1_validation():
     """Phase 1: Run all data validations."""
     print_header("PHASE 1: DATA VALIDATION")
 
     try:
         from src.data_validation import run_all_validations
+
         results = run_all_validations()
         return True
     except Exception as e:
         logger.error(f"✗ Error in validation phase: {e}")
         import traceback
+
         traceback.print_exc()
         return False
 
@@ -210,15 +211,15 @@ def phase2_harmonization():
     print_header("PHASE 2: POPULATION DATA HARMONIZATION")
 
     try:
-        from src.harmonization import harmonize_population
         from src import POPULATION_PROCESSED_DIR
+        from src.harmonization import harmonize_population
 
         df_pop = harmonize_population()
 
         expected_files = [
-            POPULATION_PROCESSED_DIR / 'cdmx_population_harmonized_2000_2022.csv',
-            POPULATION_PROCESSED_DIR / 'cdmx_population_harmonized_2000_2022_wide.csv',
-            POPULATION_PROCESSED_DIR / 'cdmx_population_metadata.json'
+            POPULATION_PROCESSED_DIR / "cdmx_population_harmonized_2000_2022.csv",
+            POPULATION_PROCESSED_DIR / "cdmx_population_harmonized_2000_2022_wide.csv",
+            POPULATION_PROCESSED_DIR / "cdmx_population_metadata.json",
         ]
         verify_output_files(expected_files)
 
@@ -226,6 +227,7 @@ def phase2_harmonization():
     except Exception as e:
         logger.error(f"✗ Error in harmonization phase: {e}")
         import traceback
+
         traceback.print_exc()
         return False
 
@@ -235,15 +237,15 @@ def phase3_mortality():
     print_header("PHASE 3: MORTALITY DATA PROCESSING")
 
     try:
-        from src.mortality_processing import process_mortality_data
         from src import MORTALITY_PROCESSED_DIR
+        from src.mortality_processing import process_mortality_data
 
         df_mort = process_mortality_data()
 
         expected_files = [
-            MORTALITY_PROCESSED_DIR / 'cdmx_lung_cancer_deaths_2000_2022.csv',
-            MORTALITY_PROCESSED_DIR / 'cdmx_lung_cancer_deaths_2000_2022_wide.csv',
-            MORTALITY_PROCESSED_DIR / 'cdmx_lung_cancer_metadata.json'
+            MORTALITY_PROCESSED_DIR / "cdmx_lung_cancer_deaths_2000_2022.csv",
+            MORTALITY_PROCESSED_DIR / "cdmx_lung_cancer_deaths_2000_2022_wide.csv",
+            MORTALITY_PROCESSED_DIR / "cdmx_lung_cancer_metadata.json",
         ]
         verify_output_files(expected_files)
 
@@ -251,6 +253,7 @@ def phase3_mortality():
     except Exception as e:
         logger.error(f"✗ Error in mortality phase: {e}")
         import traceback
+
         traceback.print_exc()
         return False
 
@@ -260,17 +263,17 @@ def phase4_integration():
     print_header("PHASE 4: INTEGRATION AND AGE STANDARDIZATION")
 
     try:
-        from src.integration import integrate_data
         from src import INTEGRATED_PROCESSED_DIR
+        from src.integration import integrate_data
 
         df_final = integrate_data()
 
         expected_files = [
-            INTEGRATED_PROCESSED_DIR / 'cdmx_population_mortality_merged_2000_2022.csv',
-            INTEGRATED_PROCESSED_DIR / 'cdmx_mortality_rates_2000_2022.csv',
-            INTEGRATED_PROCESSED_DIR / 'cdmx_analysis_dataset_2004_2022.csv',
-            INTEGRATED_PROCESSED_DIR / 'cdmx_analysis_dataset_wide.csv',
-            INTEGRATED_PROCESSED_DIR / 'integration_metadata.json'
+            INTEGRATED_PROCESSED_DIR / "cdmx_population_mortality_merged_2000_2022.csv",
+            INTEGRATED_PROCESSED_DIR / "cdmx_mortality_rates_2000_2022.csv",
+            INTEGRATED_PROCESSED_DIR / "cdmx_analysis_dataset_2004_2022.csv",
+            INTEGRATED_PROCESSED_DIR / "cdmx_analysis_dataset_wide.csv",
+            INTEGRATED_PROCESSED_DIR / "integration_metadata.json",
         ]
         verify_output_files(expected_files)
 
@@ -278,6 +281,7 @@ def phase4_integration():
     except Exception as e:
         logger.error(f"✗ Error in integration phase: {e}")
         import traceback
+
         traceback.print_exc()
         return False
 
@@ -287,7 +291,8 @@ def phase5_analysis():
     print_header("PHASE 5: STATISTICAL ANALYSIS AND VISUALIZATION")
 
     try:
-        from src.analysis import run_analysis, prepare_analysis_sample, sex_specific_analysis
+        from src.analysis import (prepare_analysis_sample, run_analysis,
+                                  sex_specific_analysis)
         from src.visualization import create_all_visualizations
 
         # Run statistical analysis
@@ -295,9 +300,9 @@ def phase5_analysis():
 
         # Extract models for visualization
         models = {
-            'pooled_ols': models_dict['pooled_ols'],
-            'alcaldia_fe': models_dict['alcaldia_fe'],
-            'twoway_fe': models_dict['twoway_fe']
+            "pooled_ols": models_dict["pooled_ols"],
+            "alcaldia_fe": models_dict["alcaldia_fe"],
+            "twoway_fe": models_dict["twoway_fe"],
         }
 
         # Run sex-specific analysis
@@ -312,6 +317,7 @@ def phase5_analysis():
     except Exception as e:
         logger.error(f"✗ Error in analysis phase: {e}")
         import traceback
+
         traceback.print_exc()
         return False
 
@@ -321,16 +327,19 @@ def phase6_geospatial():
     print_header("PHASE 6: GEOSPATIAL VISUALIZATIONS")
 
     try:
-        from src.integration import load_analysis_data
+        from src import (ALCALDIAS_WITH_POLLUTION, ALCALDIAS_WITHOUT_POLLUTION,
+                         GEOSPATIAL_AVAILABLE)
         from src.geospatial import create_all_geospatial_visualizations
-        from src import ALCALDIAS_WITH_POLLUTION, ALCALDIAS_WITHOUT_POLLUTION, GEOSPATIAL_AVAILABLE
+        from src.integration import load_analysis_data
 
         if not GEOSPATIAL_AVAILABLE:
             logger.error("✗ Geospatial module not available. Install geopandas.")
             return False
 
         logger.info(f"Alcaldías with pollution data: {len(ALCALDIAS_WITH_POLLUTION)}")
-        logger.info(f"Alcaldías excluded (no monitoring): {', '.join(ALCALDIAS_WITHOUT_POLLUTION)}")
+        logger.info(
+            f"Alcaldías excluded (no monitoring): {', '.join(ALCALDIAS_WITHOUT_POLLUTION)}"
+        )
 
         # Load analysis data
         df, _ = load_analysis_data()
@@ -346,6 +355,7 @@ def phase6_geospatial():
     except Exception as e:
         logger.error(f"✗ Error in geospatial phase: {e}")
         import traceback
+
         traceback.print_exc()
         return False
 
@@ -354,12 +364,13 @@ def phase6_geospatial():
 # MAIN EXECUTION
 # =============================================================================
 
+
 def main():
     """Main execution function."""
 
     # Parse command line arguments
     parser = argparse.ArgumentParser(
-        description='Run the complete analysis pipeline for Project 1',
+        description="Run the complete analysis pipeline for Project 1",
         formatter_class=argparse.RawDescriptionHelpFormatter,
         epilog="""
 Examples:
@@ -369,34 +380,33 @@ Examples:
   python -m src.run_analysis --skip-validation  # Skip validation phases
   python -m src.run_analysis --phases 2,3,4   # Run specific phases
   python -m src.run_analysis --list-phases    # List all phases
-        """
+        """,
     )
     parser.add_argument(
-        '--phase', '-p',
+        "--phase",
+        "-p",
         type=int,
         choices=[1, 2, 3, 4, 5, 6],
-        help='Run only a specific phase (1-6)'
+        help="Run only a specific phase (1-6)",
     )
     parser.add_argument(
-        '--phases', '-P',
+        "--phases",
+        "-P",
         type=str,
-        help='Run specific phases (comma-separated, e.g., "2,3,4")'
+        help='Run specific phases (comma-separated, e.g., "2,3,4")',
     )
     parser.add_argument(
-        '--from-phase', '-f',
+        "--from-phase",
+        "-f",
         type=int,
         choices=[1, 2, 3, 4, 5, 6],
-        help='Run from specified phase onward'
+        help="Run from specified phase onward",
     )
     parser.add_argument(
-        '--skip-validation',
-        action='store_true',
-        help='Skip validation phase (Phase 1)'
+        "--skip-validation", action="store_true", help="Skip validation phase (Phase 1)"
     )
     parser.add_argument(
-        '--list-phases',
-        action='store_true',
-        help='List all phases and exit'
+        "--list-phases", action="store_true", help="List all phases and exit"
     )
     args = parser.parse_args()
 
@@ -428,7 +438,7 @@ Examples:
     if args.phase:
         logger.info(f"Running only Phase {args.phase}")
     if args.phases:
-        phases_list = [int(p.strip()) for p in args.phases.split(',')]
+        phases_list = [int(p.strip()) for p in args.phases.split(",")]
         logger.info(f"Running phases: {phases_list}")
     if args.from_phase:
         logger.info(f"Running from Phase {args.from_phase} onward")
@@ -441,7 +451,7 @@ Examples:
     if args.phase:
         run_phases = {args.phase}
     elif args.phases:
-        run_phases = set(int(p.strip()) for p in args.phases.split(','))
+        run_phases = set(int(p.strip()) for p in args.phases.split(","))
     elif args.from_phase:
         run_phases = set(range(args.from_phase, 7))
     else:
@@ -449,42 +459,42 @@ Examples:
 
     # Phase 1: Validation
     if 1 in run_phases and not args.skip_validation:
-        results['1_validation'] = phase1_validation()
+        results["1_validation"] = phase1_validation()
     elif 1 in run_phases:
         print_header("PHASE 1: DATA VALIDATION (SKIPPED)")
-        results['1_validation'] = True
+        results["1_validation"] = True
     elif not args.skip_validation and 1 not in run_phases:
-        results['1_validation'] = True
+        results["1_validation"] = True
 
     # Phase 2: Population Harmonization
     if 2 in run_phases:
-        results['2_harmonization'] = phase2_harmonization()
+        results["2_harmonization"] = phase2_harmonization()
     else:
-        results['2_harmonization'] = True
+        results["2_harmonization"] = True
 
     # Phase 3: Mortality Processing
     if 3 in run_phases:
-        results['3_mortality'] = phase3_mortality()
+        results["3_mortality"] = phase3_mortality()
     else:
-        results['3_mortality'] = True
+        results["3_mortality"] = True
 
     # Phase 4: Integration
     if 4 in run_phases:
-        results['4_integration'] = phase4_integration()
+        results["4_integration"] = phase4_integration()
     else:
-        results['4_integration'] = True
+        results["4_integration"] = True
 
     # Phase 5: Analysis
     if 5 in run_phases:
-        results['5_analysis'] = phase5_analysis()
+        results["5_analysis"] = phase5_analysis()
     else:
-        results['5_analysis'] = True
+        results["5_analysis"] = True
 
     # Phase 6: Geospatial
     if 6 in run_phases:
-        results['6_geospatial'] = phase6_geospatial()
+        results["6_geospatial"] = phase6_geospatial()
     else:
-        results['6_geospatial'] = True
+        results["6_geospatial"] = True
 
     # Print summary
     all_passed = print_execution_summary(results)
@@ -493,11 +503,10 @@ Examples:
     logger.info("" + "-" * 60)
     logger.info("OUTPUT FILES LOCATION")
     logger.info("-" * 60)
-    from src import (
-        CENSUS_RAW_DIR, MORTALITY_RAW_DIR, POLLUTION_RAW_DIR,
-        POPULATION_PROCESSED_DIR, MORTALITY_PROCESSED_DIR, INTEGRATED_PROCESSED_DIR,
-        FIGURES_DIR, TABLES_DIR, MODELS_DIR, LOGS_DIR
-    )
+    from src import (CENSUS_RAW_DIR, FIGURES_DIR, INTEGRATED_PROCESSED_DIR,
+                     LOGS_DIR, MODELS_DIR, MORTALITY_PROCESSED_DIR,
+                     MORTALITY_RAW_DIR, POLLUTION_RAW_DIR,
+                     POPULATION_PROCESSED_DIR, TABLES_DIR)
 
     logger.info(f"Raw data:")
     logger.info(f"Census:    {CENSUS_RAW_DIR}")
@@ -525,7 +534,7 @@ Examples:
         logger.info(f"- Models:           {MODELS_DIR}/*.txt")
 
     # Log completion
-    with open(log_file, 'a', encoding='utf-8') as f:
+    with open(log_file, "a", encoding="utf-8") as f:
         f.write("\n" + "=" * 80 + "\n")
         f.write(f"Script completed: {datetime.now().isoformat()}\n")
         f.write(f"Exit status: {'SUCCESS' if all_passed else 'PARTIAL/FAILURE'}\n")

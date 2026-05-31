@@ -5,8 +5,8 @@ Author: Arlex Marín
 Date: April 2026
 """
 
-import unittest
 import sys
+import unittest
 from pathlib import Path
 
 # Add project root to path
@@ -20,6 +20,7 @@ class TestRunAnalysisImports(unittest.TestCase):
     def test_import_utils(self):
         try:
             from src import utils
+
             self.assertTrue(True)
         except ImportError as e:
             self.fail(f"Failed to import utils: {e}")
@@ -27,6 +28,7 @@ class TestRunAnalysisImports(unittest.TestCase):
     def test_import_data_validation(self):
         try:
             from src import data_validation
+
             self.assertTrue(True)
         except ImportError as e:
             self.fail(f"Failed to import data_validation: {e}")
@@ -34,6 +36,7 @@ class TestRunAnalysisImports(unittest.TestCase):
     def test_import_harmonization(self):
         try:
             from src import harmonization
+
             self.assertTrue(True)
         except ImportError as e:
             self.fail(f"Failed to import harmonization: {e}")
@@ -41,6 +44,7 @@ class TestRunAnalysisImports(unittest.TestCase):
     def test_import_mortality_processing(self):
         try:
             from src import mortality_processing
+
             self.assertTrue(True)
         except ImportError as e:
             self.fail(f"Failed to import mortality_processing: {e}")
@@ -48,6 +52,7 @@ class TestRunAnalysisImports(unittest.TestCase):
     def test_import_integration(self):
         try:
             from src import integration
+
             self.assertTrue(True)
         except ImportError as e:
             self.fail(f"Failed to import integration: {e}")
@@ -55,6 +60,7 @@ class TestRunAnalysisImports(unittest.TestCase):
     def test_import_analysis(self):
         try:
             from src import analysis
+
             self.assertTrue(True)
         except ImportError as e:
             self.fail(f"Failed to import analysis: {e}")
@@ -62,6 +68,7 @@ class TestRunAnalysisImports(unittest.TestCase):
     def test_import_visualization(self):
         try:
             from src import visualization
+
             self.assertTrue(True)
         except ImportError as e:
             self.fail(f"Failed to import visualization: {e}")
@@ -74,6 +81,7 @@ class TestRunAnalysisImports(unittest.TestCase):
             self.skipTest("geopandas not installed")
         try:
             from src import geospatial  # noqa: F401
+
             self.assertTrue(True)
         except ImportError as e:
             self.fail(f"Failed to import geospatial: {e}")
@@ -81,6 +89,7 @@ class TestRunAnalysisImports(unittest.TestCase):
     def test_import_run_analysis(self):
         try:
             from src import run_analysis
+
             self.assertTrue(True)
         except ImportError as e:
             self.fail(f"Failed to import run_analysis: {e}")
@@ -91,14 +100,17 @@ class TestConstants(unittest.TestCase):
 
     def test_alcaldia_count(self):
         from src.utils import ALCALDIA_CODES
+
         self.assertEqual(len(ALCALDIA_CODES), 16)
 
     def test_age_groups(self):
         from src.utils import HARMONIZED_AGE_GROUPS
+
         self.assertEqual(len(HARMONIZED_AGE_GROUPS), 6)
 
     def test_pollutants(self):
         from src.utils import POLLUTANTS
+
         self.assertEqual(len(POLLUTANTS), 6)
         self.assertIn("pm25", POLLUTANTS)
 
@@ -108,17 +120,17 @@ class TestDirectoryStructure(unittest.TestCase):
 
     def test_ensure_directories(self):
         from src import ensure_directories
+
         result = ensure_directories()
         self.assertTrue(result)
 
     def test_paths_defined(self):
-        from src import (
-            DATA_DIR, RAW_DATA_DIR, PROCESSED_DATA_DIR, EXTERNAL_DATA_DIR,
-            OUTPUTS_DIR, LOGS_DIR, DOCS_DIR,
-            CENSUS_RAW_DIR, MORTALITY_RAW_DIR, POLLUTION_RAW_DIR,
-            POPULATION_PROCESSED_DIR, MORTALITY_PROCESSED_DIR, INTEGRATED_PROCESSED_DIR,
-            FIGURES_DIR, TABLES_DIR, MODELS_DIR
-        )
+        from src import (CENSUS_RAW_DIR, DATA_DIR, DOCS_DIR, EXTERNAL_DATA_DIR,
+                         FIGURES_DIR, INTEGRATED_PROCESSED_DIR, LOGS_DIR,
+                         MODELS_DIR, MORTALITY_PROCESSED_DIR,
+                         MORTALITY_RAW_DIR, OUTPUTS_DIR, POLLUTION_RAW_DIR,
+                         POPULATION_PROCESSED_DIR, PROCESSED_DATA_DIR,
+                         RAW_DATA_DIR, TABLES_DIR)
 
         # All paths should be Path objects
         self.assertIsInstance(DATA_DIR, Path)

@@ -6,14 +6,14 @@ Date: April 2026
 """
 
 import unittest
-import pandas as pd
-import numpy as np
 from pathlib import Path
 
-from src.harmonization import (
-    clamp_proportion, prepare_alcaldia_dataframe,
-    DEFAULT_PROP_FEMALE, DEFAULT_PROP_MALE, PROP_15_17_OF_15_24
-)
+import numpy as np
+import pandas as pd
+
+from src.harmonization import (DEFAULT_PROP_FEMALE, DEFAULT_PROP_MALE,
+                               PROP_15_17_OF_15_24, clamp_proportion,
+                               prepare_alcaldia_dataframe)
 from src.utils import ALCALDIA_CODES, CDMX_ENTIDAD
 
 
@@ -40,12 +40,14 @@ class TestPrepareAlcaldiaDataframe(unittest.TestCase):
 
     def setUp(self):
         """Create a sample dataframe mimicking census structure."""
-        self.df = pd.DataFrame({
-            "ENTIDAD": ["09", "09", "09", "09", "09"],
-            "MUN": ["002", "003", "007", "010", "015"],
-            "LOC": ["0000", "0000", "0000", "0001", "0000"],
-            "P_TOTAL": ["100000", "200000", "300000", "50000", "150000"]
-        })
+        self.df = pd.DataFrame(
+            {
+                "ENTIDAD": ["09", "09", "09", "09", "09"],
+                "MUN": ["002", "003", "007", "010", "015"],
+                "LOC": ["0000", "0000", "0000", "0001", "0000"],
+                "P_TOTAL": ["100000", "200000", "300000", "50000", "150000"],
+            }
+        )
 
     def test_filter_cdmx_alcaldias(self):
         result = prepare_alcaldia_dataframe(self.df)
@@ -75,10 +77,19 @@ class TestPrepareAlcaldiaDataframe(unittest.TestCase):
 
     def test_entity_filter(self):
         # Add a row from another entity
-        df_with_other = pd.concat([
-            self.df,
-            pd.DataFrame({"ENTIDAD": ["15"], "MUN": ["001"], "LOC": ["0000"], "P_TOTAL": ["50000"]})
-        ])
+        df_with_other = pd.concat(
+            [
+                self.df,
+                pd.DataFrame(
+                    {
+                        "ENTIDAD": ["15"],
+                        "MUN": ["001"],
+                        "LOC": ["0000"],
+                        "P_TOTAL": ["50000"],
+                    }
+                ),
+            ]
+        )
 
         result = prepare_alcaldia_dataframe(df_with_other)
 
@@ -102,11 +113,13 @@ class TestAgeGroupMapping(unittest.TestCase):
 
     def test_harmonized_age_groups_order(self):
         from src.utils import HARMONIZED_AGE_GROUPS
-        expected = ['0-4', '5-14', '15-17', '18-24', '25-59', '60+']
+
+        expected = ["0-4", "5-14", "15-17", "18-24", "25-59", "60+"]
         self.assertEqual(HARMONIZED_AGE_GROUPS, expected)
 
     def test_who_weights_sum(self):
         from src.utils import WHO_WEIGHTS
+
         total = sum(WHO_WEIGHTS.values())
         self.assertAlmostEqual(total, 1.0, places=4)
 

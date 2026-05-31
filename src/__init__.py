@@ -28,30 +28,30 @@ logger = logging.getLogger(__name__)
 
 # Project paths
 PROJECT_ROOT = Path(__file__).parent.parent.resolve()
-DATA_DIR = PROJECT_ROOT / 'data'
-RAW_DATA_DIR = DATA_DIR / 'raw'
-PROCESSED_DATA_DIR = DATA_DIR / 'processed'
-EXTERNAL_DATA_DIR = DATA_DIR / 'external'
-OUTPUTS_DIR = PROJECT_ROOT / 'outputs'
-LOGS_DIR = PROJECT_ROOT / 'logs'
-DOCS_DIR = PROJECT_ROOT / 'docs'
-TESTS_DIR = PROJECT_ROOT / 'tests'
-NOTEBOOKS_DIR = PROJECT_ROOT / 'notebooks'
+DATA_DIR = PROJECT_ROOT / "data"
+RAW_DATA_DIR = DATA_DIR / "raw"
+PROCESSED_DATA_DIR = DATA_DIR / "processed"
+EXTERNAL_DATA_DIR = DATA_DIR / "external"
+OUTPUTS_DIR = PROJECT_ROOT / "outputs"
+LOGS_DIR = PROJECT_ROOT / "logs"
+DOCS_DIR = PROJECT_ROOT / "docs"
+TESTS_DIR = PROJECT_ROOT / "tests"
+NOTEBOOKS_DIR = PROJECT_ROOT / "notebooks"
 
 # Specific data directories
-CENSUS_RAW_DIR = RAW_DATA_DIR / 'census'
-MORTALITY_RAW_DIR = RAW_DATA_DIR / 'mortality'
-POLLUTION_RAW_DIR = RAW_DATA_DIR / 'pollution'
-POPULATION_PROCESSED_DIR = PROCESSED_DATA_DIR / 'population'
-MORTALITY_PROCESSED_DIR = PROCESSED_DATA_DIR / 'mortality'
-INTEGRATED_PROCESSED_DIR = PROCESSED_DATA_DIR / 'integrated'
-SHAPEFILE_DIR = EXTERNAL_DATA_DIR / 'shapefiles'
-DICTIONARIES_DIR = EXTERNAL_DATA_DIR / 'dictionaries'
+CENSUS_RAW_DIR = RAW_DATA_DIR / "census"
+MORTALITY_RAW_DIR = RAW_DATA_DIR / "mortality"
+POLLUTION_RAW_DIR = RAW_DATA_DIR / "pollution"
+POPULATION_PROCESSED_DIR = PROCESSED_DATA_DIR / "population"
+MORTALITY_PROCESSED_DIR = PROCESSED_DATA_DIR / "mortality"
+INTEGRATED_PROCESSED_DIR = PROCESSED_DATA_DIR / "integrated"
+SHAPEFILE_DIR = EXTERNAL_DATA_DIR / "shapefiles"
+DICTIONARIES_DIR = EXTERNAL_DATA_DIR / "dictionaries"
 
 # Output subdirectories
-FIGURES_DIR = OUTPUTS_DIR / 'figures'
-TABLES_DIR = OUTPUTS_DIR / 'tables'
-MODELS_DIR = OUTPUTS_DIR / 'models'
+FIGURES_DIR = OUTPUTS_DIR / "figures"
+TABLES_DIR = OUTPUTS_DIR / "tables"
+MODELS_DIR = OUTPUTS_DIR / "models"
 
 
 def ensure_directories():
@@ -75,55 +75,44 @@ def ensure_directories():
     return True
 
 
+from .analysis import (correlation_analysis, descriptive_statistics,
+                       panel_regression, prepare_analysis_sample, run_analysis,
+                       sex_specific_analysis)
+from .data_validation import (run_all_validations, validate_all_censuses,
+                              validate_mortality_data, validate_pollution_data)
+from .harmonization import harmonize_population
+from .integration import ANALYSIS_YEARS as INTEGRATION_ANALYSIS_YEARS
+from .integration import (integrate_data, load_analysis_data,
+                          load_mortality_data, load_pollution_data,
+                          load_population_data)
+from .mortality_processing import process_mortality_data
 # Import all public functions for easier access
-from .utils import (
-    safe_int, normalize_string, format_number, format_percent, format_pvalue,
-    read_csv_flexible, read_csv_with_encoding, setup_logging, save_json, load_json, clamp_proportion,
-    get_census_file_path, get_mortality_file_path, get_pollution_file_path,
-    get_population_processed_path, get_mortality_processed_path,
-    get_integrated_dataset_path,
-    ALCALDIA_CODES, ALCALDIA_NAME_TO_CODE, CDMX_ENTIDAD, CDMX_ENTIDAD_INT,
-    HARMONIZED_AGE_GROUPS, WHO_WEIGHTS, LUNG_CANCER_CODES, POLLUTANTS,
-    ALCALDIAS_WITH_POLLUTION, ALCALDIAS_WITHOUT_POLLUTION, CENSUS_YEARS,
-    ANALYSIS_YEARS
-)
-
-from .data_validation import (
-    validate_all_censuses, validate_mortality_data, validate_pollution_data,
-    run_all_validations
-)
-
-from .harmonization import (
-    harmonize_population
-)
-
-from .mortality_processing import (
-    process_mortality_data
-)
-
-from .integration import (
-    integrate_data, load_population_data, load_mortality_data,
-    load_pollution_data, load_analysis_data, ANALYSIS_YEARS as INTEGRATION_ANALYSIS_YEARS
-)
-
-from .analysis import (
-    descriptive_statistics, correlation_analysis, panel_regression,
-    sex_specific_analysis, run_analysis, prepare_analysis_sample
-)
-
-from .visualization import (
-    plot_temporal_trends, plot_correlation_scatter, plot_alcaldia_boxplot,
-    plot_pm25_by_alcaldia, plot_regression_coefficients, plot_sex_specific_effects,
-    plot_correlation_heatmap, create_all_visualizations, save_figure
-)
+from .utils import (ALCALDIA_CODES, ALCALDIA_NAME_TO_CODE,
+                    ALCALDIAS_WITH_POLLUTION, ALCALDIAS_WITHOUT_POLLUTION,
+                    ANALYSIS_YEARS, CDMX_ENTIDAD, CDMX_ENTIDAD_INT,
+                    CENSUS_YEARS, HARMONIZED_AGE_GROUPS, LUNG_CANCER_CODES,
+                    POLLUTANTS, WHO_WEIGHTS, clamp_proportion, format_number,
+                    format_percent, format_pvalue, get_census_file_path,
+                    get_integrated_dataset_path, get_mortality_file_path,
+                    get_mortality_processed_path, get_pollution_file_path,
+                    get_population_processed_path, load_json, normalize_string,
+                    read_csv_flexible, read_csv_with_encoding, safe_int,
+                    save_json, setup_logging)
+from .visualization import (create_all_visualizations, plot_alcaldia_boxplot,
+                            plot_correlation_heatmap, plot_correlation_scatter,
+                            plot_pm25_by_alcaldia,
+                            plot_regression_coefficients,
+                            plot_sex_specific_effects, plot_temporal_trends,
+                            save_figure)
 
 # Try to import geospatial (may fail if geopandas not installed)
 try:
-    from .geospatial import (
-        load_cdmx_shapefile, prepare_alcaldia_shapefile, create_choropleth_map,
-        create_pollution_choropleth, create_bivariate_choropleth,
-        create_all_geospatial_visualizations
-    )
+    from .geospatial import (create_all_geospatial_visualizations,
+                             create_bivariate_choropleth,
+                             create_choropleth_map,
+                             create_pollution_choropleth, load_cdmx_shapefile,
+                             prepare_alcaldia_shapefile)
+
     GEOSPATIAL_AVAILABLE = True
 except ImportError as e:
     GEOSPATIAL_AVAILABLE = False
@@ -133,25 +122,44 @@ except ImportError as e:
 # Package metadata
 __all__ = [
     # Version
-    '__version__', '__author__',
-
+    "__version__",
+    "__author__",
     # Paths
-    'PROJECT_ROOT', 'DATA_DIR', 'RAW_DATA_DIR', 'PROCESSED_DATA_DIR',
-    'EXTERNAL_DATA_DIR', 'OUTPUTS_DIR', 'LOGS_DIR', 'DOCS_DIR',
-    'CENSUS_RAW_DIR', 'MORTALITY_RAW_DIR', 'POLLUTION_RAW_DIR',
-    'POPULATION_PROCESSED_DIR', 'MORTALITY_PROCESSED_DIR',
-    'INTEGRATED_PROCESSED_DIR', 'SHAPEFILE_DIR', 'DICTIONARIES_DIR',
-    'FIGURES_DIR', 'TABLES_DIR', 'MODELS_DIR',
-
+    "PROJECT_ROOT",
+    "DATA_DIR",
+    "RAW_DATA_DIR",
+    "PROCESSED_DATA_DIR",
+    "EXTERNAL_DATA_DIR",
+    "OUTPUTS_DIR",
+    "LOGS_DIR",
+    "DOCS_DIR",
+    "CENSUS_RAW_DIR",
+    "MORTALITY_RAW_DIR",
+    "POLLUTION_RAW_DIR",
+    "POPULATION_PROCESSED_DIR",
+    "MORTALITY_PROCESSED_DIR",
+    "INTEGRATED_PROCESSED_DIR",
+    "SHAPEFILE_DIR",
+    "DICTIONARIES_DIR",
+    "FIGURES_DIR",
+    "TABLES_DIR",
+    "MODELS_DIR",
     # Functions
-    'ensure_directories',
-
+    "ensure_directories",
     # Constants
-    'ALCALDIA_CODES', 'ALCALDIA_NAME_TO_CODE', 'CDMX_ENTIDAD', 'CDMX_ENTIDAD_INT',
-    'HARMONIZED_AGE_GROUPS', 'WHO_WEIGHTS', 'LUNG_CANCER_CODES', 'POLLUTANTS',
-    'ALCALDIAS_WITH_POLLUTION', 'ALCALDIAS_WITHOUT_POLLUTION', 'CENSUS_YEARS',
-    'ANALYSIS_YEARS', 'GEOSPATIAL_AVAILABLE',
-
+    "ALCALDIA_CODES",
+    "ALCALDIA_NAME_TO_CODE",
+    "CDMX_ENTIDAD",
+    "CDMX_ENTIDAD_INT",
+    "HARMONIZED_AGE_GROUPS",
+    "WHO_WEIGHTS",
+    "LUNG_CANCER_CODES",
+    "POLLUTANTS",
+    "ALCALDIAS_WITH_POLLUTION",
+    "ALCALDIAS_WITHOUT_POLLUTION",
+    "CENSUS_YEARS",
+    "ANALYSIS_YEARS",
+    "GEOSPATIAL_AVAILABLE",
     # Analysis functions
-    'prepare_analysis_sample',
+    "prepare_analysis_sample",
 ]
