@@ -18,13 +18,13 @@ Date: April 2026
 Updated: April 23, 2026 - Initial creation
 """
 
-import unittest
-import tempfile
 import sys
+import tempfile
+import unittest
 from pathlib import Path
 
-import pandas as pd
 import numpy as np
+import pandas as pd
 
 # Add project root to path
 PROJECT_ROOT = Path(__file__).parent.parent.resolve()
@@ -382,17 +382,15 @@ class TestEndToEndPipeline(unittest.TestCase):
 
     def test_full_pipeline_with_synthetic_data(self):
         """Run the complete analysis pipeline on synthetic data."""
+        from src.analysis import correlation_analysis, descriptive_statistics
         from src.integration import (
-            merge_population_mortality,
-            calculate_crude_rates,
             calculate_age_standardized_rates,
+            calculate_crude_rates,
+            merge_population_mortality,
         )
-        from src.analysis import descriptive_statistics, correlation_analysis
 
         # 1. Merge population and mortality
-        merged = merge_population_mortality(
-            SYNTHETIC_POPULATION.copy(), SYNTHETIC_MORTALITY.copy()
-        )
+        merged = merge_population_mortality(SYNTHETIC_POPULATION.copy(), SYNTHETIC_MORTALITY.copy())
         self.assertIsInstance(merged, pd.DataFrame)
 
         # 2. Calculate crude rates
@@ -429,9 +427,7 @@ class TestEndToEndPipeline(unittest.TestCase):
         both_sex["no2"] = np.random.normal(25, 5, len(both_sex))
         from src.utils import ALCALDIA_NAME_TO_CODE
 
-        both_sex["alcaldia_code"] = (
-            both_sex["alcaldia"].map(ALCALDIA_NAME_TO_CODE).astype(int)
-        )
+        both_sex["alcaldia_code"] = both_sex["alcaldia"].map(ALCALDIA_NAME_TO_CODE).astype(int)
 
         # 5. Run statistical analysis
         stats = descriptive_statistics(both_sex)
@@ -463,11 +459,7 @@ class TestEndToEndPipeline(unittest.TestCase):
 
     def test_harmonization_constants(self):
         """Test harmonization constants are valid."""
-        from src.harmonization import (
-            DEFAULT_PROP_FEMALE,
-            DEFAULT_PROP_MALE,
-            PROP_15_17_OF_15_24,
-        )
+        from src.harmonization import DEFAULT_PROP_FEMALE, DEFAULT_PROP_MALE, PROP_15_17_OF_15_24
 
         self.assertAlmostEqual(DEFAULT_PROP_FEMALE + DEFAULT_PROP_MALE, 1.0)
         self.assertGreater(PROP_15_17_OF_15_24, 0)
@@ -478,10 +470,10 @@ class TestEndToEndPipeline(unittest.TestCase):
         from src.utils import (
             ALCALDIA_CODES,
             ALCALDIA_NAME_TO_CODE,
-            WHO_WEIGHTS,
             HARMONIZED_AGE_GROUPS,
-            POLLUTANTS,
             LUNG_CANCER_CODES,
+            POLLUTANTS,
+            WHO_WEIGHTS,
         )
 
         self.assertEqual(len(ALCALDIA_CODES), 16)

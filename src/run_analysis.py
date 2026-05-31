@@ -291,8 +291,7 @@ def phase5_analysis():
     print_header("PHASE 5: STATISTICAL ANALYSIS AND VISUALIZATION")
 
     try:
-        from src.analysis import (prepare_analysis_sample, run_analysis,
-                                  sex_specific_analysis)
+        from src.analysis import prepare_analysis_sample, run_analysis, sex_specific_analysis
         from src.visualization import create_all_visualizations
 
         # Run statistical analysis
@@ -327,8 +326,7 @@ def phase6_geospatial():
     print_header("PHASE 6: GEOSPATIAL VISUALIZATIONS")
 
     try:
-        from src import (ALCALDIAS_WITH_POLLUTION, ALCALDIAS_WITHOUT_POLLUTION,
-                         GEOSPATIAL_AVAILABLE)
+        from src import ALCALDIAS_WITH_POLLUTION, ALCALDIAS_WITHOUT_POLLUTION, GEOSPATIAL_AVAILABLE
         from src.geospatial import create_all_geospatial_visualizations
         from src.integration import load_analysis_data
 
@@ -337,9 +335,7 @@ def phase6_geospatial():
             return False
 
         logger.info(f"Alcaldías with pollution data: {len(ALCALDIAS_WITH_POLLUTION)}")
-        logger.info(
-            f"Alcaldías excluded (no monitoring): {', '.join(ALCALDIAS_WITHOUT_POLLUTION)}"
-        )
+        logger.info(f"Alcaldías excluded (no monitoring): {', '.join(ALCALDIAS_WITHOUT_POLLUTION)}")
 
         # Load analysis data
         df, _ = load_analysis_data()
@@ -402,12 +398,8 @@ Examples:
         choices=[1, 2, 3, 4, 5, 6],
         help="Run from specified phase onward",
     )
-    parser.add_argument(
-        "--skip-validation", action="store_true", help="Skip validation phase (Phase 1)"
-    )
-    parser.add_argument(
-        "--list-phases", action="store_true", help="List all phases and exit"
-    )
+    parser.add_argument("--skip-validation", action="store_true", help="Skip validation phase (Phase 1)")
+    parser.add_argument("--list-phases", action="store_true", help="List all phases and exit")
     args = parser.parse_args()
 
     # List phases and exit
@@ -503,10 +495,18 @@ Examples:
     logger.info("" + "-" * 60)
     logger.info("OUTPUT FILES LOCATION")
     logger.info("-" * 60)
-    from src import (CENSUS_RAW_DIR, FIGURES_DIR, INTEGRATED_PROCESSED_DIR,
-                     LOGS_DIR, MODELS_DIR, MORTALITY_PROCESSED_DIR,
-                     MORTALITY_RAW_DIR, POLLUTION_RAW_DIR,
-                     POPULATION_PROCESSED_DIR, TABLES_DIR)
+    from src import (
+        CENSUS_RAW_DIR,
+        FIGURES_DIR,
+        INTEGRATED_PROCESSED_DIR,
+        LOGS_DIR,
+        MODELS_DIR,
+        MORTALITY_PROCESSED_DIR,
+        MORTALITY_RAW_DIR,
+        POLLUTION_RAW_DIR,
+        POPULATION_PROCESSED_DIR,
+        TABLES_DIR,
+    )
 
     logger.info(f"Raw data:")
     logger.info(f"Census:    {CENSUS_RAW_DIR}")

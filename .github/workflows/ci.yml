@@ -59,8 +59,8 @@ jobs:
 
       - name: Check formatting with black
         run: |
-          black --check --diff src/ tests/
+          black --check --diff --line-length=110 src/ tests/
 
       - name: Check import ordering with isort
         run: |
-          isort --check-only --diff src/ tests/
+          isort --check-only --diff --profile=black --line-length=110 src/ tests/

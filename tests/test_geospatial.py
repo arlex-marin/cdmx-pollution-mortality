@@ -25,12 +25,14 @@ except ImportError:
 
 # Geospatial module import (may fail without geopandas)
 try:
-    from src.geospatial import (create_bivariate_choropleth,
-                                create_choropleth_map,
-                                create_pollution_choropleth,
-                                get_entity_shapefile_path,
-                                get_municipal_shapefile_path,
-                                prepare_alcaldia_shapefile)
+    from src.geospatial import (
+        create_bivariate_choropleth,
+        create_choropleth_map,
+        create_pollution_choropleth,
+        get_entity_shapefile_path,
+        get_municipal_shapefile_path,
+        prepare_alcaldia_shapefile,
+    )
 
     GEOSPATIAL_MODULE_AVAILABLE = True
 except ImportError:
@@ -70,18 +72,14 @@ class TestShapefilePaths(unittest.TestCase):
         path = get_municipal_shapefile_path()
         self.assertIsInstance(path, Path)
         path_str = str(path).lower()
-        self.assertTrue(
-            "09mun" in path_str or "municipal" in path_str or "shapefile" in path_str
-        )
+        self.assertTrue("09mun" in path_str or "municipal" in path_str or "shapefile" in path_str)
 
     def test_get_entity_shapefile_path(self):
         """Test entity shapefile path returns a Path object."""
         path = get_entity_shapefile_path()
         self.assertIsInstance(path, Path)
         path_str = str(path).lower()
-        self.assertTrue(
-            "09ent" in path_str or "entity" in path_str or "shapefile" in path_str
-        )
+        self.assertTrue("09ent" in path_str or "entity" in path_str or "shapefile" in path_str)
 
 
 @unittest.skipUnless(
@@ -118,9 +116,7 @@ class TestLoadShapefile(unittest.TestCase):
         self.assertIn("geometry", gdf_result.columns)
 
 
-@unittest.skipUnless(
-    GEOPANDAS_AVAILABLE and GEOSPATIAL_MODULE_AVAILABLE, "Geopandas not available"
-)
+@unittest.skipUnless(GEOPANDAS_AVAILABLE and GEOSPATIAL_MODULE_AVAILABLE, "Geopandas not available")
 class TestPrepareAlcaldiaShapefile(unittest.TestCase):
     """Test prepare_alcaldia_shapefile function."""
 
@@ -170,9 +166,7 @@ class TestPrepareAlcaldiaShapefile(unittest.TestCase):
         self.assertNotIn("Other", result["alcaldia"].values)
 
 
-@unittest.skipUnless(
-    GEOSPATIAL_MODULE_AVAILABLE, "Geospatial module not available (geopandas required)"
-)
+@unittest.skipUnless(GEOSPATIAL_MODULE_AVAILABLE, "Geospatial module not available (geopandas required)")
 class TestChoroplethCreation(unittest.TestCase):
     """Test choropleth creation functions."""
 
@@ -224,20 +218,20 @@ class TestChoroplethCreation(unittest.TestCase):
         self.assertTrue(callable(create_bivariate_choropleth))
 
 
-@unittest.skipUnless(
-    GEOSPATIAL_MODULE_AVAILABLE, "Geospatial module not available (geopandas required)"
-)
+@unittest.skipUnless(GEOSPATIAL_MODULE_AVAILABLE, "Geospatial module not available (geopandas required)")
 class TestGeospatialImports(unittest.TestCase):
     """Test that all geospatial functions are properly exposed."""
 
     def test_geospatial_module_imports(self):
         """Test importing from geospatial module."""
-        from src.geospatial import (create_all_geospatial_visualizations,
-                                    create_bivariate_choropleth,
-                                    create_choropleth_map,
-                                    create_pollution_choropleth,
-                                    load_cdmx_shapefile,
-                                    prepare_alcaldia_shapefile)
+        from src.geospatial import (
+            create_all_geospatial_visualizations,
+            create_bivariate_choropleth,
+            create_choropleth_map,
+            create_pollution_choropleth,
+            load_cdmx_shapefile,
+            prepare_alcaldia_shapefile,
+        )
 
         self.assertTrue(callable(load_cdmx_shapefile))
         self.assertTrue(callable(prepare_alcaldia_shapefile))

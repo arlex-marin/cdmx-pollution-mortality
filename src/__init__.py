@@ -75,43 +75,85 @@ def ensure_directories():
     return True
 
 
-from .analysis import (correlation_analysis, descriptive_statistics,
-                       panel_regression, prepare_analysis_sample, run_analysis,
-                       sex_specific_analysis)
-from .data_validation import (run_all_validations, validate_all_censuses,
-                              validate_mortality_data, validate_pollution_data)
+from .analysis import (
+    correlation_analysis,
+    descriptive_statistics,
+    panel_regression,
+    prepare_analysis_sample,
+    run_analysis,
+    sex_specific_analysis,
+)
+from .data_validation import (
+    run_all_validations,
+    validate_all_censuses,
+    validate_mortality_data,
+    validate_pollution_data,
+)
 from .harmonization import harmonize_population
 from .integration import ANALYSIS_YEARS as INTEGRATION_ANALYSIS_YEARS
-from .integration import (integrate_data, load_analysis_data,
-                          load_mortality_data, load_pollution_data,
-                          load_population_data)
+from .integration import (
+    integrate_data,
+    load_analysis_data,
+    load_mortality_data,
+    load_pollution_data,
+    load_population_data,
+)
 from .mortality_processing import process_mortality_data
+
 # Import all public functions for easier access
-from .utils import (ALCALDIA_CODES, ALCALDIA_NAME_TO_CODE,
-                    ALCALDIAS_WITH_POLLUTION, ALCALDIAS_WITHOUT_POLLUTION,
-                    ANALYSIS_YEARS, CDMX_ENTIDAD, CDMX_ENTIDAD_INT,
-                    CENSUS_YEARS, HARMONIZED_AGE_GROUPS, LUNG_CANCER_CODES,
-                    POLLUTANTS, WHO_WEIGHTS, clamp_proportion, format_number,
-                    format_percent, format_pvalue, get_census_file_path,
-                    get_integrated_dataset_path, get_mortality_file_path,
-                    get_mortality_processed_path, get_pollution_file_path,
-                    get_population_processed_path, load_json, normalize_string,
-                    read_csv_flexible, read_csv_with_encoding, safe_int,
-                    save_json, setup_logging)
-from .visualization import (create_all_visualizations, plot_alcaldia_boxplot,
-                            plot_correlation_heatmap, plot_correlation_scatter,
-                            plot_pm25_by_alcaldia,
-                            plot_regression_coefficients,
-                            plot_sex_specific_effects, plot_temporal_trends,
-                            save_figure)
+from .utils import (
+    ALCALDIA_CODES,
+    ALCALDIA_NAME_TO_CODE,
+    ALCALDIAS_WITH_POLLUTION,
+    ALCALDIAS_WITHOUT_POLLUTION,
+    ANALYSIS_YEARS,
+    CDMX_ENTIDAD,
+    CDMX_ENTIDAD_INT,
+    CENSUS_YEARS,
+    HARMONIZED_AGE_GROUPS,
+    LUNG_CANCER_CODES,
+    POLLUTANTS,
+    WHO_WEIGHTS,
+    clamp_proportion,
+    format_number,
+    format_percent,
+    format_pvalue,
+    get_census_file_path,
+    get_integrated_dataset_path,
+    get_mortality_file_path,
+    get_mortality_processed_path,
+    get_pollution_file_path,
+    get_population_processed_path,
+    load_json,
+    normalize_string,
+    read_csv_flexible,
+    read_csv_with_encoding,
+    safe_int,
+    save_json,
+    setup_logging,
+)
+from .visualization import (
+    create_all_visualizations,
+    plot_alcaldia_boxplot,
+    plot_correlation_heatmap,
+    plot_correlation_scatter,
+    plot_pm25_by_alcaldia,
+    plot_regression_coefficients,
+    plot_sex_specific_effects,
+    plot_temporal_trends,
+    save_figure,
+)
 
 # Try to import geospatial (may fail if geopandas not installed)
 try:
-    from .geospatial import (create_all_geospatial_visualizations,
-                             create_bivariate_choropleth,
-                             create_choropleth_map,
-                             create_pollution_choropleth, load_cdmx_shapefile,
-                             prepare_alcaldia_shapefile)
+    from .geospatial import (
+        create_all_geospatial_visualizations,
+        create_bivariate_choropleth,
+        create_choropleth_map,
+        create_pollution_choropleth,
+        load_cdmx_shapefile,
+        prepare_alcaldia_shapefile,
+    )
 
     GEOSPATIAL_AVAILABLE = True
 except ImportError as e:

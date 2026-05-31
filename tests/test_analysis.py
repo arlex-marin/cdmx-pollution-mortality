@@ -101,10 +101,7 @@ class TestCorrelationAnalysis(unittest.TestCase):
 
     def test_pm25_correlation_positive(self):
         result = correlation_analysis(self.df)
-        pm25_asr = result[
-            (result["pollutant"] == "PM25")
-            & (result["mortality"] == "age_standardized_rate")
-        ]
+        pm25_asr = result[(result["pollutant"] == "PM25") & (result["mortality"] == "age_standardized_rate")]
 
         if len(pm25_asr) > 0:
             # Should show positive correlation

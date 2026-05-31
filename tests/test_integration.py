@@ -10,8 +10,7 @@ import unittest
 import numpy as np
 import pandas as pd
 
-from src.integration import (calculate_age_standardized_rates,
-                             calculate_crude_rates, map_alcaldia_name)
+from src.integration import calculate_age_standardized_rates, calculate_crude_rates, map_alcaldia_name
 from src.utils import HARMONIZED_AGE_GROUPS, WHO_WEIGHTS
 
 
@@ -139,9 +138,7 @@ class TestAgeStandardizationFormula(unittest.TestCase):
         }
 
         # Calculate ASR
-        asr = sum(
-            age_specific_rates[age] * WHO_WEIGHTS[age] for age in HARMONIZED_AGE_GROUPS
-        )
+        asr = sum(age_specific_rates[age] * WHO_WEIGHTS[age] for age in HARMONIZED_AGE_GROUPS)
         asr_per_100k = asr * 100000
 
         # Expected value

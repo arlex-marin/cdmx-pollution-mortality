@@ -20,12 +20,24 @@ import numpy as np
 import pandas as pd
 
 from . import CENSUS_RAW_DIR, LOGS_DIR, MORTALITY_RAW_DIR, POLLUTION_RAW_DIR
-from .utils import (ALCALDIA_CODES, CDMX_ENTIDAD, CDMX_ENTIDAD_INT,
-                    HARMONIZED_AGE_GROUPS, LUNG_CANCER_CODES, POLLUTANTS,
-                    format_number, format_percent, get_census_file_path,
-                    get_mortality_file_path, get_pollution_file_path,
-                    normalize_string, read_csv_flexible,
-                    read_csv_with_encoding, safe_int, save_json)
+from .utils import (
+    ALCALDIA_CODES,
+    CDMX_ENTIDAD,
+    CDMX_ENTIDAD_INT,
+    HARMONIZED_AGE_GROUPS,
+    LUNG_CANCER_CODES,
+    POLLUTANTS,
+    format_number,
+    format_percent,
+    get_census_file_path,
+    get_mortality_file_path,
+    get_pollution_file_path,
+    normalize_string,
+    read_csv_flexible,
+    read_csv_with_encoding,
+    safe_int,
+    save_json,
+)
 
 logger = logging.getLogger(__name__)
 
@@ -141,9 +153,7 @@ def validate_age_group_coverage(df_alcaldias, year):
         "available": age_cols_available,
         "missing": age_cols_missing,
         "coverage_pct": (
-            len(age_cols_available) / len(expected_cols.get(year, [])) * 100
-            if expected_cols.get(year)
-            else 0
+            len(age_cols_available) / len(expected_cols.get(year, [])) * 100 if expected_cols.get(year) else 0
         ),
     }
 
@@ -182,23 +192,15 @@ def validate_census_2000():
 
         # Filter to CDMX alcaldías
         df_alcaldias = df[
-            (df["ENTIDAD"] == CDMX_ENTIDAD)
-            & (df["LOC"] == "0000")
-            & (df["MUN"].isin(ALCALDIA_CODES.keys()))
+            (df["ENTIDAD"] == CDMX_ENTIDAD) & (df["LOC"] == "0000") & (df["MUN"].isin(ALCALDIA_CODES.keys()))
         ].copy()
 
         df_alcaldias["alcaldia"] = df_alcaldias["MUN"].map(ALCALDIA_CODES)
 
         # Calculate totals
-        total_pop = sum(
-            safe_int(row.get("P_TOTAL", 0)) for _, row in df_alcaldias.iterrows()
-        )
-        total_male = sum(
-            safe_int(row.get("PMASCUL", 0)) for _, row in df_alcaldias.iterrows()
-        )
-        total_female = sum(
-            safe_int(row.get("PFEMENI", 0)) for _, row in df_alcaldias.iterrows()
-        )
+        total_pop = sum(safe_int(row.get("P_TOTAL", 0)) for _, row in df_alcaldias.iterrows())
+        total_male = sum(safe_int(row.get("PMASCUL", 0)) for _, row in df_alcaldias.iterrows())
+        total_female = sum(safe_int(row.get("PFEMENI", 0)) for _, row in df_alcaldias.iterrows())
 
         # Validate age group coverage
         age_validation = validate_age_group_coverage(df_alcaldias, 2000)
@@ -253,23 +255,15 @@ def validate_census_2005():
 
         # Filter to CDMX alcaldías
         df_alcaldias = df[
-            (df["ENTIDAD"] == CDMX_ENTIDAD)
-            & (df["LOC"] == "0000")
-            & (df["MUN"].isin(ALCALDIA_CODES.keys()))
+            (df["ENTIDAD"] == CDMX_ENTIDAD) & (df["LOC"] == "0000") & (df["MUN"].isin(ALCALDIA_CODES.keys()))
         ].copy()
 
         df_alcaldias["alcaldia"] = df_alcaldias["MUN"].map(ALCALDIA_CODES)
 
         # Calculate totals
-        total_pop = sum(
-            safe_int(row.get("P_TOTAL", 0)) for _, row in df_alcaldias.iterrows()
-        )
-        total_male = sum(
-            safe_int(row.get("P_MAS", 0)) for _, row in df_alcaldias.iterrows()
-        )
-        total_female = sum(
-            safe_int(row.get("P_FEM", 0)) for _, row in df_alcaldias.iterrows()
-        )
+        total_pop = sum(safe_int(row.get("P_TOTAL", 0)) for _, row in df_alcaldias.iterrows())
+        total_male = sum(safe_int(row.get("P_MAS", 0)) for _, row in df_alcaldias.iterrows())
+        total_female = sum(safe_int(row.get("P_FEM", 0)) for _, row in df_alcaldias.iterrows())
 
         # Validate age group coverage
         age_validation = validate_age_group_coverage(df_alcaldias, 2005)
@@ -289,9 +283,7 @@ def validate_census_2005():
             "totals": {"total": total_pop, "male": total_male, "female": total_female},
             "sex_ratio": total_male / total_female if total_female > 0 else None,
             "age_columns": age_validation,
-            "notes": [
-                "15-24 age group available, requires splitting into 15-17 and 18-24"
-            ],
+            "notes": ["15-24 age group available, requires splitting into 15-17 and 18-24"],
         }
 
     except Exception as e:
@@ -326,23 +318,15 @@ def validate_census_2010():
 
         # Filter to CDMX alcaldías
         df_alcaldias = df[
-            (df["ENTIDAD"] == CDMX_ENTIDAD)
-            & (df["LOC"] == "0000")
-            & (df["MUN"].isin(ALCALDIA_CODES.keys()))
+            (df["ENTIDAD"] == CDMX_ENTIDAD) & (df["LOC"] == "0000") & (df["MUN"].isin(ALCALDIA_CODES.keys()))
         ].copy()
 
         df_alcaldias["alcaldia"] = df_alcaldias["MUN"].map(ALCALDIA_CODES)
 
         # Calculate totals
-        total_pop = sum(
-            safe_int(row.get("P_TOTAL", 0)) for _, row in df_alcaldias.iterrows()
-        )
-        total_male = sum(
-            safe_int(row.get("POBMAS", 0)) for _, row in df_alcaldias.iterrows()
-        )
-        total_female = sum(
-            safe_int(row.get("POBFEM", 0)) for _, row in df_alcaldias.iterrows()
-        )
+        total_pop = sum(safe_int(row.get("P_TOTAL", 0)) for _, row in df_alcaldias.iterrows())
+        total_male = sum(safe_int(row.get("POBMAS", 0)) for _, row in df_alcaldias.iterrows())
+        total_female = sum(safe_int(row.get("POBFEM", 0)) for _, row in df_alcaldias.iterrows())
 
         # Validate age group coverage
         age_validation = validate_age_group_coverage(df_alcaldias, 2010)
@@ -356,9 +340,7 @@ def validate_census_2010():
             safe_int(row.get("P_15A17_F", 0)) + safe_int(row.get("P_18A24_F", 0))
             for _, row in df_alcaldias.iterrows()
         )
-        total_15_17_f = sum(
-            safe_int(row.get("P_15A17_F", 0)) for _, row in df_alcaldias.iterrows()
-        )
+        total_15_17_f = sum(safe_int(row.get("P_15A17_F", 0)) for _, row in df_alcaldias.iterrows())
         prop_15_17 = total_15_17_f / total_15_24_f if total_15_24_f > 0 else None
 
         return {
@@ -409,9 +391,7 @@ def validate_census_2020():
 
         # Filter to CDMX alcaldías
         df_alcaldias = df[
-            (df["ENTIDAD"] == CDMX_ENTIDAD)
-            & (df["LOC"] == "0000")
-            & (df["MUN"].isin(ALCALDIA_CODES.keys()))
+            (df["ENTIDAD"] == CDMX_ENTIDAD) & (df["LOC"] == "0000") & (df["MUN"].isin(ALCALDIA_CODES.keys()))
         ].copy()
 
         df_alcaldias["alcaldia"] = df_alcaldias["MUN"].map(ALCALDIA_CODES)
@@ -443,9 +423,7 @@ def validate_census_2020():
 
         for _, row in df_alcaldias.iterrows():
             total_male += sum(safe_int(row.get(f"P_{age}_M", 0)) for age in age_groups)
-            total_female += sum(
-                safe_int(row.get(f"P_{age}_F", 0)) for age in age_groups
-            )
+            total_female += sum(safe_int(row.get(f"P_{age}_F", 0)) for age in age_groups)
 
         total_pop = total_male + total_female
 
@@ -506,16 +484,12 @@ def validate_all_censuses() -> list:
                     f"✓ {result['year']}: {format_number(result['totals']['total'])} total population"
                 )
                 if result.get("alcaldias_missing"):
-                    logger.warning(
-                        f"⚠️ Missing alcaldías: {result['alcaldias_missing']}"
-                    )
+                    logger.warning(f"⚠️ Missing alcaldías: {result['alcaldias_missing']}")
                 if result.get("notes"):
                     for note in result["notes"]:
                         logger.info(f"ℹ️ {note}")
             else:
-                logger.error(
-                    f"✗ {result['year']}: {result.get('error', 'Unknown error')}"
-                )
+                logger.error(f"✗ {result['year']}: {result.get('error', 'Unknown error')}")
 
         except Exception as e:
             results.append(
@@ -633,9 +607,7 @@ def validate_mortality_data() -> list:
 
             # Filter to lung cancer deaths
             df_cdmx[causa_col] = df_cdmx[causa_col].astype(str)
-            lung_cancer = df_cdmx[
-                df_cdmx[causa_col].str.startswith(tuple(LUNG_CANCER_CODES))
-            ]
+            lung_cancer = df_cdmx[df_cdmx[causa_col].str.startswith(tuple(LUNG_CANCER_CODES))]
 
             # Count by alcaldía
             alcaldia_counts = lung_cancer[mun_col].value_counts().to_dict()
@@ -647,9 +619,7 @@ def validate_mortality_data() -> list:
                     "total_deaths_cdmx": len(df_cdmx),
                     "lung_cancer_deaths": len(lung_cancer),
                     "alcaldias_with_deaths": len(alcaldia_counts),
-                    "alcaldia_breakdown": {
-                        str(k): v for k, v in alcaldia_counts.items()
-                    },
+                    "alcaldia_breakdown": {str(k): v for k, v in alcaldia_counts.items()},
                 }
             )
 
@@ -657,8 +627,7 @@ def validate_mortality_data() -> list:
             years_with_data += 1
 
             logger.info(
-                f"✓ {year}: {len(lung_cancer):,} lung cancer deaths "
-                f"({len(alcaldia_counts)} alcaldías)"
+                f"✓ {year}: {len(lung_cancer):,} lung cancer deaths " f"({len(alcaldia_counts)} alcaldías)"
             )
 
         except Exception as e:
@@ -734,11 +703,7 @@ def validate_pollution_data() -> dict:
         if alcaldia_col:
             df["alcaldia_mapped"] = df[alcaldia_col].apply(
                 lambda x: next(
-                    (
-                        a
-                        for a in ALCALDIA_CODES.values()
-                        if normalize_string(str(x)) == normalize_string(a)
-                    ),
+                    (a for a in ALCALDIA_CODES.values() if normalize_string(str(x)) == normalize_string(a)),
                     None,
                 )
             )
@@ -800,9 +765,7 @@ def validate_pollution_data() -> dict:
 
         for pol, stats in pollutant_stats.items():
             if stats["negative_values"] > 0:
-                logger.warning(
-                    f"⚠️ {pol}: {stats['negative_values']} negative values detected"
-                )
+                logger.warning(f"⚠️ {pol}: {stats['negative_values']} negative values detected")
 
     except Exception as e:
         results = {"status": "ERROR", "error": str(e)}

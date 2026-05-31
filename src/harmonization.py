@@ -18,11 +18,21 @@ import pandas as pd
 logger = logging.getLogger(__name__)
 
 from . import LOGS_DIR, POPULATION_PROCESSED_DIR, ensure_directories
-from .utils import (ALCALDIA_CODES, CDMX_ENTIDAD, CENSUS_YEARS,
-                    HARMONIZED_AGE_GROUPS, WHO_WEIGHTS, clamp_proportion,
-                    format_number, get_census_file_path, normalize_string,
-                    read_csv_flexible, read_csv_with_encoding, safe_int,
-                    save_json)
+from .utils import (
+    ALCALDIA_CODES,
+    CDMX_ENTIDAD,
+    CENSUS_YEARS,
+    HARMONIZED_AGE_GROUPS,
+    WHO_WEIGHTS,
+    clamp_proportion,
+    format_number,
+    get_census_file_path,
+    normalize_string,
+    read_csv_flexible,
+    read_csv_with_encoding,
+    safe_int,
+    save_json,
+)
 
 # Default sex proportion (CDMX typical based on historical census data)
 DEFAULT_PROP_FEMALE = 0.52
@@ -94,9 +104,7 @@ def prepare_alcaldia_dataframe(df):
     df_cdmx = df[df["ENTIDAD"] == CDMX_ENTIDAD].copy()
 
     # Filter to alcaldía level (LOC = '0000' indicates municipal total)
-    df_alcaldias = df_cdmx[
-        (df_cdmx["LOC"] == "0000") & (df_cdmx["MUN"].isin(ALCALDIA_CODES.keys()))
-    ].copy()
+    df_alcaldias = df_cdmx[(df_cdmx["LOC"] == "0000") & (df_cdmx["MUN"].isin(ALCALDIA_CODES.keys()))].copy()
 
     # If fewer than 16 alcaldías found, try without LOC filter
     if len(df_alcaldias) < 16:
@@ -142,18 +150,13 @@ def estimate_60plus_2000(row, df_2005_props=None):
         if alcaldia_name:
             alcaldia_props = df_2005_props[df_2005_props["alcaldia"] == alcaldia_name]
 
-            if (
-                not alcaldia_props.empty
-                and "prop_60plus_of_18plus_2005" in alcaldia_props.columns
-            ):
+            if not alcaldia_props.empty and "prop_60plus_of_18plus_2005" in alcaldia_props.columns:
                 prop = alcaldia_props["prop_60plus_of_18plus_2005"].iloc[0]
                 if not pd.isna(prop) and prop > 0:
                     # Apply a 5% reduction for 2000 due to demographic aging trend
                     # (population was slightly younger in 2000 than 2005)
                     adjusted_prop = prop * 0.95
-                    return int(
-                        pob18_plus * clamp_proportion(adjusted_prop, default=0.10)
-                    )
+                    return int(pob18_plus * clamp_proportion(adjusted_prop, default=0.10))
 
     # Strategy 2: Use validated CDMX average for 2000
     return int(pob18_plus * CDMX_AVG_PROP_60PLUS_OF_18PLUS_2000)
@@ -193,9 +196,7 @@ def load_census_2000():
         total_pop = total_male + total_female
 
         # Calculate overall sex proportions for this alcaldía
-        overall_prop_f = (
-            total_female / total_pop if total_pop > 0 else DEFAULT_PROP_FEMALE
-        )
+        overall_prop_f = total_female / total_pop if total_pop > 0 else DEFAULT_PROP_FEMALE
         overall_prop_m = 1 - overall_prop_f
 
         # Extract available age groups
@@ -362,18 +363,14 @@ def load_census_2005():
                         }
                     )
 
-            total_pop_age = (
-                age_sex_data[age_group]["Female"] + age_sex_data[age_group]["Male"]
-            )
+            total_pop_age = age_sex_data[age_group]["Female"] + age_sex_data[age_group]["Male"]
             if total_pop_age > 0:
                 sex_props.append(
                     {
                         "alcaldia": alcaldia,
                         "age_group": age_group,
-                        "prop_female_2005": age_sex_data[age_group]["Female"]
-                        / total_pop_age,
-                        "prop_male_2005": age_sex_data[age_group]["Male"]
-                        / total_pop_age,
+                        "prop_female_2005": age_sex_data[age_group]["Female"] / total_pop_age,
+                        "prop_male_2005": age_sex_data[age_group]["Male"] / total_pop_age,
                     }
                 )
 
@@ -454,11 +451,7 @@ def load_census_2010():
         total_male = safe_int(row.get("POBMAS", 0))
         total_pop_check = total_female + total_male
 
-        prop_f_25_59 = (
-            total_female / total_pop_check
-            if total_pop_check > 0
-            else DEFAULT_PROP_FEMALE
-        )
+        prop_f_25_59 = total_female / total_pop_check if total_pop_check > 0 else DEFAULT_PROP_FEMALE
 
         fem_25_59 = int(pop_25_59_total * prop_f_25_59)
         male_25_59 = pop_25_59_total - fem_25_59
@@ -487,18 +480,14 @@ def load_census_2010():
                         }
                     )
 
-            total_pop_age = (
-                age_sex_data[age_group]["Female"] + age_sex_data[age_group]["Male"]
-            )
+            total_pop_age = age_sex_data[age_group]["Female"] + age_sex_data[age_group]["Male"]
             if total_pop_age > 0:
                 sex_props.append(
                     {
                         "alcaldia": alcaldia,
                         "age_group": age_group,
-                        "prop_female_2010": age_sex_data[age_group]["Female"]
-                        / total_pop_age,
-                        "prop_male_2010": age_sex_data[age_group]["Male"]
-                        / total_pop_age,
+                        "prop_female_2010": age_sex_data[age_group]["Female"] / total_pop_age,
+                        "prop_male_2010": age_sex_data[age_group]["Male"] / total_pop_age,
                     }
                 )
 
@@ -601,18 +590,14 @@ def load_census_2020():
                         }
                     )
 
-            total_pop_age = (
-                age_sex_data[age_group]["Female"] + age_sex_data[age_group]["Male"]
-            )
+            total_pop_age = age_sex_data[age_group]["Female"] + age_sex_data[age_group]["Male"]
             if total_pop_age > 0:
                 sex_props.append(
                     {
                         "alcaldia": alcaldia,
                         "age_group": age_group,
-                        "prop_female_2020": age_sex_data[age_group]["Female"]
-                        / total_pop_age,
-                        "prop_male_2020": age_sex_data[age_group]["Male"]
-                        / total_pop_age,
+                        "prop_female_2020": age_sex_data[age_group]["Female"] / total_pop_age,
+                        "prop_male_2020": age_sex_data[age_group]["Male"] / total_pop_age,
                     }
                 )
 
@@ -659,22 +644,14 @@ def refine_2000_with_backcast(df_2000, df_2005_props, df_2010_props):
     )
 
     # Clamp to valid range and fill missing
-    props_combined["prop_female_2000"] = props_combined["prop_female_2000"].apply(
-        clamp_proportion
-    )
+    props_combined["prop_female_2000"] = props_combined["prop_female_2000"].apply(clamp_proportion)
     props_combined["prop_male_2000"] = 1 - props_combined["prop_female_2000"]
-    props_combined["prop_female_2000"] = props_combined["prop_female_2000"].fillna(
-        DEFAULT_PROP_FEMALE
-    )
-    props_combined["prop_male_2000"] = props_combined["prop_male_2000"].fillna(
-        DEFAULT_PROP_MALE
-    )
+    props_combined["prop_female_2000"] = props_combined["prop_female_2000"].fillna(DEFAULT_PROP_FEMALE)
+    props_combined["prop_male_2000"] = props_combined["prop_male_2000"].fillna(DEFAULT_PROP_MALE)
 
     # Get total population by age group from initial 2000 estimates
     df_2000_totals = (
-        df_2000.groupby(["alcaldia", "alcaldia_code", "age_group"])["population"]
-        .sum()
-        .reset_index()
+        df_2000.groupby(["alcaldia", "alcaldia_code", "age_group"])["population"].sum().reset_index()
     )
     df_2000_totals.columns = ["alcaldia", "alcaldia_code", "age_group", "total_pop"]
 
@@ -686,12 +663,8 @@ def refine_2000_with_backcast(df_2000, df_2005_props, df_2010_props):
     )
 
     # Fill any missing proportions with defaults
-    df_2000_totals["prop_female_2000"] = df_2000_totals["prop_female_2000"].fillna(
-        DEFAULT_PROP_FEMALE
-    )
-    df_2000_totals["prop_male_2000"] = df_2000_totals["prop_male_2000"].fillna(
-        DEFAULT_PROP_MALE
-    )
+    df_2000_totals["prop_female_2000"] = df_2000_totals["prop_female_2000"].fillna(DEFAULT_PROP_FEMALE)
+    df_2000_totals["prop_male_2000"] = df_2000_totals["prop_male_2000"].fillna(DEFAULT_PROP_MALE)
 
     # Create refined sex-specific records
     refined_records = []
@@ -745,9 +718,7 @@ def refine_2005_15_24(df_2005):
 
     # Calculate total 15-24 by alcaldía
     df_2005_15_24_total = (
-        df_2005_15_24.groupby(["alcaldia", "alcaldia_code"])["population"]
-        .sum()
-        .reset_index()
+        df_2005_15_24.groupby(["alcaldia", "alcaldia_code"])["population"].sum().reset_index()
     )
     df_2005_15_24_total.columns = ["alcaldia", "alcaldia_code", "total_15_24"]
 
@@ -760,39 +731,19 @@ def refine_2005_15_24(df_2005):
         total_15_24 = row["total_15_24"]
 
         # Get original sex proportions from this alcaldía
-        original_15_17 = df_2005[
-            (df_2005["alcaldia"] == alcaldia) & (df_2005["age_group"] == "15-17")
-        ]
-        original_18_24 = df_2005[
-            (df_2005["alcaldia"] == alcaldia) & (df_2005["age_group"] == "18-24")
-        ]
+        original_15_17 = df_2005[(df_2005["alcaldia"] == alcaldia) & (df_2005["age_group"] == "15-17")]
+        original_18_24 = df_2005[(df_2005["alcaldia"] == alcaldia) & (df_2005["age_group"] == "18-24")]
 
         if len(original_15_17) > 0 and len(original_18_24) > 0:
-            fem_15_17 = original_15_17[original_15_17["sex"] == "Female"][
-                "population"
-            ].sum()
-            male_15_17 = original_15_17[original_15_17["sex"] == "Male"][
-                "population"
-            ].sum()
+            fem_15_17 = original_15_17[original_15_17["sex"] == "Female"]["population"].sum()
+            male_15_17 = original_15_17[original_15_17["sex"] == "Male"]["population"].sum()
             total_15_17_old = fem_15_17 + male_15_17
-            prop_f_15_17 = (
-                fem_15_17 / total_15_17_old
-                if total_15_17_old > 0
-                else DEFAULT_PROP_FEMALE
-            )
+            prop_f_15_17 = fem_15_17 / total_15_17_old if total_15_17_old > 0 else DEFAULT_PROP_FEMALE
 
-            fem_18_24 = original_18_24[original_18_24["sex"] == "Female"][
-                "population"
-            ].sum()
-            male_18_24 = original_18_24[original_18_24["sex"] == "Male"][
-                "population"
-            ].sum()
+            fem_18_24 = original_18_24[original_18_24["sex"] == "Female"]["population"].sum()
+            male_18_24 = original_18_24[original_18_24["sex"] == "Male"]["population"].sum()
             total_18_24_old = fem_18_24 + male_18_24
-            prop_f_18_24 = (
-                fem_18_24 / total_18_24_old
-                if total_18_24_old > 0
-                else DEFAULT_PROP_FEMALE
-            )
+            prop_f_18_24 = fem_18_24 / total_18_24_old if total_18_24_old > 0 else DEFAULT_PROP_FEMALE
         else:
             prop_f_15_17 = DEFAULT_PROP_FEMALE
             prop_f_18_24 = DEFAULT_PROP_FEMALE
@@ -870,39 +821,21 @@ def refine_2010_25_59(df_2010, df_2005, df_2020):
 
     # Calculate 2005 proportions for 25-59
     prop_2005_25_59 = df_2005[df_2005["age_group"] == "25-59"].copy()
-    prop_2005_25_59 = (
-        prop_2005_25_59.groupby(["alcaldia", "sex"])["population"]
-        .sum()
-        .unstack()
-        .reset_index()
-    )
+    prop_2005_25_59 = prop_2005_25_59.groupby(["alcaldia", "sex"])["population"].sum().unstack().reset_index()
 
     if "Female" in prop_2005_25_59.columns and "Male" in prop_2005_25_59.columns:
-        prop_2005_25_59["total_2005"] = (
-            prop_2005_25_59["Female"] + prop_2005_25_59["Male"]
-        )
-        prop_2005_25_59["prop_f_2005"] = (
-            prop_2005_25_59["Female"] / prop_2005_25_59["total_2005"]
-        )
+        prop_2005_25_59["total_2005"] = prop_2005_25_59["Female"] + prop_2005_25_59["Male"]
+        prop_2005_25_59["prop_f_2005"] = prop_2005_25_59["Female"] / prop_2005_25_59["total_2005"]
     else:
         prop_2005_25_59["prop_f_2005"] = DEFAULT_PROP_FEMALE
 
     # Calculate 2020 proportions for 25-59
     prop_2020_25_59 = df_2020[df_2020["age_group"] == "25-59"].copy()
-    prop_2020_25_59 = (
-        prop_2020_25_59.groupby(["alcaldia", "sex"])["population"]
-        .sum()
-        .unstack()
-        .reset_index()
-    )
+    prop_2020_25_59 = prop_2020_25_59.groupby(["alcaldia", "sex"])["population"].sum().unstack().reset_index()
 
     if "Female" in prop_2020_25_59.columns and "Male" in prop_2020_25_59.columns:
-        prop_2020_25_59["total_2020"] = (
-            prop_2020_25_59["Female"] + prop_2020_25_59["Male"]
-        )
-        prop_2020_25_59["prop_f_2020"] = (
-            prop_2020_25_59["Female"] / prop_2020_25_59["total_2020"]
-        )
+        prop_2020_25_59["total_2020"] = prop_2020_25_59["Female"] + prop_2020_25_59["Male"]
+        prop_2020_25_59["prop_f_2020"] = prop_2020_25_59["Female"] / prop_2020_25_59["total_2020"]
     else:
         prop_2020_25_59["prop_f_2020"] = DEFAULT_PROP_FEMALE
 
@@ -924,18 +857,14 @@ def refine_2010_25_59(df_2010, df_2005, df_2020):
 
     if len(df_2010_25_59) > 0:
         df_2010_25_59_total = (
-            df_2010_25_59.groupby(["alcaldia", "alcaldia_code"])["population"]
-            .sum()
-            .reset_index()
+            df_2010_25_59.groupby(["alcaldia", "alcaldia_code"])["population"].sum().reset_index()
         )
         df_2010_25_59_total.columns = ["alcaldia", "alcaldia_code", "total_pop"]
 
         df_2010_25_59_total = df_2010_25_59_total.merge(
             props_25_59[["alcaldia", "prop_f_2010"]], on="alcaldia", how="left"
         )
-        df_2010_25_59_total["prop_f_2010"] = df_2010_25_59_total["prop_f_2010"].fillna(
-            DEFAULT_PROP_FEMALE
-        )
+        df_2010_25_59_total["prop_f_2010"] = df_2010_25_59_total["prop_f_2010"].fillna(DEFAULT_PROP_FEMALE)
 
         refined_25_59 = []
         for _, row in df_2010_25_59_total.iterrows():
@@ -960,9 +889,7 @@ def refine_2010_25_59(df_2010, df_2005, df_2020):
                 }
             )
 
-        df_2010_refined = pd.concat(
-            [df_2010_other, pd.DataFrame(refined_25_59)], ignore_index=True
-        )
+        df_2010_refined = pd.concat([df_2010_other, pd.DataFrame(refined_25_59)], ignore_index=True)
     else:
         df_2010_refined = df_2010_other
 
@@ -1013,31 +940,19 @@ def create_annual_interpolation(df_2000, df_2005, df_2010, df_2020):
     for year in range(2001, 2005):
         weight_2005 = (year - 2000) / 5
         weight_2000 = 1 - weight_2005
-        df_wide[year] = (
-            (df_wide[2000] * weight_2000 + df_wide[2005] * weight_2005)
-            .round(0)
-            .astype(int)
-        )
+        df_wide[year] = (df_wide[2000] * weight_2000 + df_wide[2005] * weight_2005).round(0).astype(int)
 
     # Interpolate 2006-2009 (between 2005 and 2010)
     for year in range(2006, 2010):
         weight_2010 = (year - 2005) / 5
         weight_2005 = 1 - weight_2010
-        df_wide[year] = (
-            (df_wide[2005] * weight_2005 + df_wide[2010] * weight_2010)
-            .round(0)
-            .astype(int)
-        )
+        df_wide[year] = (df_wide[2005] * weight_2005 + df_wide[2010] * weight_2010).round(0).astype(int)
 
     # Interpolate 2011-2019 (between 2010 and 2020)
     for year in range(2011, 2020):
         weight_2020 = (year - 2010) / 10
         weight_2010 = 1 - weight_2020
-        df_wide[year] = (
-            (df_wide[2010] * weight_2010 + df_wide[2020] * weight_2020)
-            .round(0)
-            .astype(int)
-        )
+        df_wide[year] = (df_wide[2010] * weight_2010 + df_wide[2020] * weight_2020).round(0).astype(int)
 
     # Project 2021-2022 using 2010-2020 trend
     for idx, row in df_wide.iterrows():
@@ -1056,14 +971,10 @@ def create_annual_interpolation(df_2000, df_2005, df_2010, df_2020):
     year_cols = [c for c in df_wide.columns if isinstance(c, int)]
     id_vars = ["alcaldia", "alcaldia_code", "age_group", "sex"]
 
-    df_annual = df_wide.melt(
-        id_vars=id_vars, value_vars=year_cols, var_name="year", value_name="population"
-    )
+    df_annual = df_wide.melt(id_vars=id_vars, value_vars=year_cols, var_name="year", value_name="population")
     df_annual["year"] = df_annual["year"].astype(int)
     df_annual = df_annual[df_annual["population"] > 0]
-    df_annual = df_annual.sort_values(
-        ["alcaldia", "year", "age_group", "sex"]
-    ).reset_index(drop=True)
+    df_annual = df_annual.sort_values(["alcaldia", "year", "age_group", "sex"]).reset_index(drop=True)
 
     logger.info(f"Created {len(df_annual):,} annual records")
     return df_annual
@@ -1124,9 +1035,7 @@ def harmonize_population() -> pd.DataFrame:
         values="population",
         aggfunc="sum",
     ).reset_index()
-    output_path_wide = (
-        POPULATION_PROCESSED_DIR / "cdmx_population_harmonized_2000_2022_wide.csv"
-    )
+    output_path_wide = POPULATION_PROCESSED_DIR / "cdmx_population_harmonized_2000_2022_wide.csv"
     df_wide.to_csv(output_path_wide, index=False)
     logger.info(f"✓ Saved wide format to: {output_path_wide}")
 

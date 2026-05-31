@@ -14,9 +14,17 @@ import numpy as np
 import pandas as pd
 
 from . import LOGS_DIR, MORTALITY_PROCESSED_DIR, ensure_directories
-from .utils import (ALCALDIA_CODES, ALCALDIA_NAME_TO_CODE, CDMX_ENTIDAD_INT,
-                    HARMONIZED_AGE_GROUPS, LUNG_CANCER_CODES, format_number,
-                    get_mortality_file_path, safe_int, save_json)
+from .utils import (
+    ALCALDIA_CODES,
+    ALCALDIA_NAME_TO_CODE,
+    CDMX_ENTIDAD_INT,
+    HARMONIZED_AGE_GROUPS,
+    LUNG_CANCER_CODES,
+    format_number,
+    get_mortality_file_path,
+    safe_int,
+    save_json,
+)
 
 logger = logging.getLogger(__name__)
 
@@ -130,10 +138,7 @@ def process_mortality_data() -> pd.DataFrame | None:
             alcaldia_codes_int = [int(k) for k in ALCALDIA_CODES.keys()]
 
             # Filter to CDMX alcaldías
-            df_cdmx = df[
-                (df[ent_col] == CDMX_ENTIDAD_INT)
-                & (df[mun_col].isin(alcaldia_codes_int))
-            ].copy()
+            df_cdmx = df[(df[ent_col] == CDMX_ENTIDAD_INT) & (df[mun_col].isin(alcaldia_codes_int))].copy()
 
             if len(df_cdmx) == 0:
                 logger.warning(f"⚠️ No CDMX alcaldía deaths")
@@ -141,9 +146,7 @@ def process_mortality_data() -> pd.DataFrame | None:
 
             # Filter to lung cancer deaths
             df_cdmx[causa_col] = df_cdmx[causa_col].astype(str)
-            df_cdmx["is_lung_cancer"] = df_cdmx[causa_col].str.startswith(
-                tuple(LUNG_CANCER_CODES)
-            )
+            df_cdmx["is_lung_cancer"] = df_cdmx[causa_col].str.startswith(tuple(LUNG_CANCER_CODES))
             df_lung = df_cdmx[df_cdmx["is_lung_cancer"]].copy()
 
             if len(df_lung) == 0:
@@ -204,13 +207,9 @@ def process_mortality_data() -> pd.DataFrame | None:
     df_full["alcaldia_code"] = df_full["alcaldia"].map(ALCALDIA_NAME_TO_CODE)
 
     # Merge with aggregated deaths
-    df_final = df_full.merge(
-        df_all, on=["alcaldia", "alcaldia_code", "year", "age_group", "sex"], how="left"
-    )
+    df_final = df_full.merge(df_all, on=["alcaldia", "alcaldia_code", "year", "age_group", "sex"], how="left")
     df_final["deaths"] = df_final["deaths"].fillna(0).astype(int)
-    df_final = df_final.sort_values(
-        ["alcaldia", "year", "age_group", "sex"]
-    ).reset_index(drop=True)
+    df_final = df_final.sort_values(["alcaldia", "year", "age_group", "sex"]).reset_index(drop=True)
 
     logger.info(f"Dataset Summary:")
     logger.info(f"Total records: {len(df_final):,}")
@@ -229,9 +228,7 @@ def process_mortality_data() -> pd.DataFrame | None:
         values="deaths",
         fill_value=0,
     ).reset_index()
-    output_path_wide = (
-        MORTALITY_PROCESSED_DIR / "cdmx_lung_cancer_deaths_2000_2022_wide.csv"
-    )
+    output_path_wide = MORTALITY_PROCESSED_DIR / "cdmx_lung_cancer_deaths_2000_2022_wide.csv"
     df_wide.to_csv(output_path_wide, index=False)
     logger.info(f"✓ Saved wide format to: {output_path_wide}")
 

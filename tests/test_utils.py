@@ -13,13 +13,26 @@ from pathlib import Path
 import numpy as np
 import pandas as pd
 
-from src.utils import (ALCALDIA_CODES, ALCALDIA_NAME_TO_CODE,
-                       ALCALDIAS_WITH_POLLUTION, ALCALDIAS_WITHOUT_POLLUTION,
-                       CDMX_ENTIDAD, CDMX_ENTIDAD_INT, HARMONIZED_AGE_GROUPS,
-                       LUNG_CANCER_CODES, POLLUTANTS, WHO_WEIGHTS,
-                       clamp_proportion, format_number, format_percent,
-                       format_pvalue, load_json, normalize_string, safe_int,
-                       save_json)
+from src.utils import (
+    ALCALDIA_CODES,
+    ALCALDIA_NAME_TO_CODE,
+    ALCALDIAS_WITH_POLLUTION,
+    ALCALDIAS_WITHOUT_POLLUTION,
+    CDMX_ENTIDAD,
+    CDMX_ENTIDAD_INT,
+    HARMONIZED_AGE_GROUPS,
+    LUNG_CANCER_CODES,
+    POLLUTANTS,
+    WHO_WEIGHTS,
+    clamp_proportion,
+    format_number,
+    format_percent,
+    format_pvalue,
+    load_json,
+    normalize_string,
+    safe_int,
+    save_json,
+)
 
 
 class TestSafeInt(unittest.TestCase):

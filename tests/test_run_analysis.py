@@ -125,12 +125,24 @@ class TestDirectoryStructure(unittest.TestCase):
         self.assertTrue(result)
 
     def test_paths_defined(self):
-        from src import (CENSUS_RAW_DIR, DATA_DIR, DOCS_DIR, EXTERNAL_DATA_DIR,
-                         FIGURES_DIR, INTEGRATED_PROCESSED_DIR, LOGS_DIR,
-                         MODELS_DIR, MORTALITY_PROCESSED_DIR,
-                         MORTALITY_RAW_DIR, OUTPUTS_DIR, POLLUTION_RAW_DIR,
-                         POPULATION_PROCESSED_DIR, PROCESSED_DATA_DIR,
-                         RAW_DATA_DIR, TABLES_DIR)
+        from src import (
+            CENSUS_RAW_DIR,
+            DATA_DIR,
+            DOCS_DIR,
+            EXTERNAL_DATA_DIR,
+            FIGURES_DIR,
+            INTEGRATED_PROCESSED_DIR,
+            LOGS_DIR,
+            MODELS_DIR,
+            MORTALITY_PROCESSED_DIR,
+            MORTALITY_RAW_DIR,
+            OUTPUTS_DIR,
+            POLLUTION_RAW_DIR,
+            POPULATION_PROCESSED_DIR,
+            PROCESSED_DATA_DIR,
+            RAW_DATA_DIR,
+            TABLES_DIR,
+        )
 
         # All paths should be Path objects
         self.assertIsInstance(DATA_DIR, Path)

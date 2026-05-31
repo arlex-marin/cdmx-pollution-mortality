@@ -16,9 +16,16 @@ import statsmodels.api as sm
 from scipy.stats import pearsonr, spearmanr
 
 from . import MODELS_DIR, TABLES_DIR, ensure_directories
-from .utils import (ALCALDIA_NAME_TO_CODE, ALCALDIAS_WITH_POLLUTION,
-                    ALCALDIAS_WITHOUT_POLLUTION, POLLUTANTS, format_number,
-                    format_pvalue, get_integrated_dataset_path, save_json)
+from .utils import (
+    ALCALDIA_NAME_TO_CODE,
+    ALCALDIAS_WITH_POLLUTION,
+    ALCALDIAS_WITHOUT_POLLUTION,
+    POLLUTANTS,
+    format_number,
+    format_pvalue,
+    get_integrated_dataset_path,
+    save_json,
+)
 
 logger = logging.getLogger(__name__)
 
@@ -45,9 +52,7 @@ def prepare_analysis_sample() -> tuple[pd.DataFrame, pd.DataFrame]:
 
     # Add alcaldía code for fixed effects
     df["alcaldia_code"] = df["alcaldia"].map(ALCALDIA_NAME_TO_CODE).astype(int)
-    df_pm25["alcaldia_code"] = (
-        df_pm25["alcaldia"].map(ALCALDIA_NAME_TO_CODE).astype(int)
-    )
+    df_pm25["alcaldia_code"] = df_pm25["alcaldia"].map(ALCALDIA_NAME_TO_CODE).astype(int)
 
     logger.info(f"Analysis sample: {len(df_pm25)} records with PM2.5 data")
     logger.info(f"Alcaldías: {df_pm25['alcaldia'].nunique()}")
@@ -128,11 +133,7 @@ def correlation_analysis(df_pm25: pd.DataFrame) -> pd.DataFrame:
         sig = (
             "***"
             if row["pearson_p"] < 0.001
-            else (
-                "**"
-                if row["pearson_p"] < 0.01
-                else ("*" if row["pearson_p"] < 0.05 else "")
-            )
+            else ("**" if row["pearson_p"] < 0.01 else ("*" if row["pearson_p"] < 0.05 else ""))
         )
         logger.info(f"{row['pollutant']:6}: r = {row['pearson_r']:+.3f} {sig}")
 
@@ -176,9 +177,7 @@ def panel_regression(df_pm25: pd.DataFrame) -> tuple[dict, pd.DataFrame]:
     y2 = both_sex["age_standardized_rate"].values
     with warnings.catch_warnings():
         warnings.filterwarnings("ignore", category=UserWarning, module="statsmodels")
-        model2 = sm.OLS(y2, X2).fit(
-            cov_type="cluster", cov_kwds={"groups": both_sex["alcaldia_code"]}
-        )
+        model2 = sm.OLS(y2, X2).fit(cov_type="cluster", cov_kwds={"groups": both_sex["alcaldia_code"]})
     models["alcaldia_fe"] = model2
     results_table.append(
         {
@@ -199,9 +198,7 @@ def panel_regression(df_pm25: pd.DataFrame) -> tuple[dict, pd.DataFrame]:
     X3 = sm.add_constant(X3)
     with warnings.catch_warnings():
         warnings.filterwarnings("ignore", category=UserWarning, module="statsmodels")
-        model3 = sm.OLS(y2, X3).fit(
-            cov_type="cluster", cov_kwds={"groups": both_sex["alcaldia_code"]}
-        )
+        model3 = sm.OLS(y2, X3).fit(cov_type="cluster", cov_kwds={"groups": both_sex["alcaldia_code"]})
     models["twoway_fe"] = model3
     results_table.append(
         {
@@ -218,9 +215,7 @@ def panel_regression(df_pm25: pd.DataFrame) -> tuple[dict, pd.DataFrame]:
     y4 = both_sex["log_asr"].values
     with warnings.catch_warnings():
         warnings.filterwarnings("ignore", category=UserWarning, module="statsmodels")
-        model4 = sm.OLS(y4, X3).fit(
-            cov_type="cluster", cov_kwds={"groups": both_sex["alcaldia_code"]}
-        )
+        model4 = sm.OLS(y4, X3).fit(cov_type="cluster", cov_kwds={"groups": both_sex["alcaldia_code"]})
     effect_pct = (np.exp(model4.params["pm25_10"]) - 1) * 100
     models["log_linear"] = model4
     results_table.append(
@@ -239,9 +234,7 @@ def panel_regression(df_pm25: pd.DataFrame) -> tuple[dict, pd.DataFrame]:
     df_results.to_csv(TABLES_DIR / "regression_results_summary.csv", index=False)
 
     logger.info(f"Regression Results (Two-Way FE):")
-    logger.info(
-        f"PM2.5 (per 10 μg/m³): {model3.params['pm25_10']:.3f} (SE: {model3.bse['pm25_10']:.3f})"
-    )
+    logger.info(f"PM2.5 (per 10 μg/m³): {model3.params['pm25_10']:.3f} (SE: {model3.bse['pm25_10']:.3f})")
     logger.info(f"{format_pvalue(model3.pvalues['pm25_10'])}")
     logger.info(f"R-squared: {model3.rsquared:.3f}")
 
@@ -281,12 +274,8 @@ def sex_specific_analysis(df_pm25: pd.DataFrame) -> tuple[dict, pd.DataFrame]:
         y = df_sex["age_standardized_rate"].values
 
         with warnings.catch_warnings():
-            warnings.filterwarnings(
-                "ignore", category=UserWarning, module="statsmodels"
-            )
-            model = sm.OLS(y, X).fit(
-                cov_type="cluster", cov_kwds={"groups": df_sex["alcaldia_code"]}
-            )
+            warnings.filterwarnings("ignore", category=UserWarning, module="statsmodels")
+            model = sm.OLS(y, X).fit(cov_type="cluster", cov_kwds={"groups": df_sex["alcaldia_code"]})
         results[sex] = model
 
         results_table.append(

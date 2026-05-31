@@ -191,9 +191,7 @@ def prepare_alcaldia_shapefile(gdf: gpd.GeoDataFrame) -> gpd.GeoDataFrame:
     return gdf
 
 
-def create_choropleth_map(
-    df_analysis: pd.DataFrame, year: int = 2020, save_html: bool = True
-):
+def create_choropleth_map(df_analysis: pd.DataFrame, year: int = 2020, save_html: bool = True):
     """
     Create an interactive choropleth map of mortality rates.
 
@@ -219,9 +217,7 @@ def create_choropleth_map(
     gdf = prepare_alcaldia_shapefile(gdf)
 
     # Get mortality data for the specified year (Both sexes)
-    df_year = df_analysis[
-        (df_analysis["year"] == year) & (df_analysis["sex"] == "Both")
-    ].copy()
+    df_year = df_analysis[(df_analysis["year"] == year) & (df_analysis["sex"] == "Both")].copy()
 
     # Merge shapefile with mortality data
     gdf_merged = gdf.merge(
@@ -231,9 +227,7 @@ def create_choropleth_map(
     )
 
     # Identify missing alcaldías
-    missing = gdf_merged[gdf_merged["age_standardized_rate"].isna()][
-        "alcaldia"
-    ].tolist()
+    missing = gdf_merged[gdf_merged["age_standardized_rate"].isna()]["alcaldia"].tolist()
     if missing:
         logger.warning(f"⚠️ Missing data for: {missing}")
 
@@ -277,12 +271,8 @@ def create_choropleth_map(
     ax.set_axis_off()
 
     plt.tight_layout()
-    fig_static.savefig(
-        FIGURES_DIR / f"choropleth_mortality_{year}.png", dpi=300, bbox_inches="tight"
-    )
-    fig_static.savefig(
-        FIGURES_DIR / f"choropleth_mortality_{year}.svg", bbox_inches="tight"
-    )
+    fig_static.savefig(FIGURES_DIR / f"choropleth_mortality_{year}.png", dpi=300, bbox_inches="tight")
+    fig_static.savefig(FIGURES_DIR / f"choropleth_mortality_{year}.svg", bbox_inches="tight")
     logger.info(f"✓ Saved static map: choropleth_mortality_{year}.png")
 
     # Create interactive Plotly map
@@ -324,9 +314,7 @@ def create_choropleth_map(
     return fig_static
 
 
-def create_pollution_choropleth(
-    df_analysis, year=2020, pollutant="pm25", save_html=True
-):
+def create_pollution_choropleth(df_analysis, year=2020, pollutant="pm25", save_html=True):
     """
     Create an interactive choropleth map of air pollution.
 
@@ -345,9 +333,7 @@ def create_pollution_choropleth(
     --------
     plotly.graph_objects.Figure or matplotlib.figure.Figure
     """
-    logger.info(
-        f"Creating pollution choropleth map for {year} ({pollutant.upper()})..."
-    )
+    logger.info(f"Creating pollution choropleth map for {year} ({pollutant.upper()})...")
 
     ensure_directories()
 
@@ -356,9 +342,7 @@ def create_pollution_choropleth(
     gdf = prepare_alcaldia_shapefile(gdf)
 
     # Get pollution data for the specified year (Both sexes)
-    df_year = df_analysis[
-        (df_analysis["year"] == year) & (df_analysis["sex"] == "Both")
-    ].copy()
+    df_year = df_analysis[(df_analysis["year"] == year) & (df_analysis["sex"] == "Both")].copy()
 
     # Merge shapefile with pollution data
     gdf_merged = gdf.merge(df_year[["alcaldia", pollutant]], on="alcaldia", how="left")
@@ -423,9 +407,7 @@ def create_pollution_choropleth(
     ax.set_axis_off()
 
     plt.tight_layout()
-    fig_static.savefig(
-        FIGURES_DIR / f"choropleth_{pollutant}_{year}.png", dpi=300, bbox_inches="tight"
-    )
+    fig_static.savefig(FIGURES_DIR / f"choropleth_{pollutant}_{year}.png", dpi=300, bbox_inches="tight")
     logger.info(f"✓ Saved static map: choropleth_{pollutant}_{year}.png")
 
     # Create interactive Plotly map
@@ -485,9 +467,7 @@ def create_bivariate_choropleth(df_analysis, year=2020, save_html=True):
     gdf = prepare_alcaldia_shapefile(gdf)
 
     # Get data for the specified year
-    df_year = df_analysis[
-        (df_analysis["year"] == year) & (df_analysis["sex"] == "Both")
-    ].copy()
+    df_year = df_analysis[(df_analysis["year"] == year) & (df_analysis["sex"] == "Both")].copy()
 
     # Merge shapefile with data
     gdf_merged = gdf.merge(
@@ -549,13 +529,9 @@ def create_bivariate_choropleth(df_analysis, year=2020, save_html=True):
 
     legend_elements = [
         Patch(facecolor=colors["Low PM / Low Mort"], label="Low PM / Low Mortality"),
-        Patch(
-            facecolor=colors["Low PM / Medium Mort"], label="Low PM / Medium Mortality"
-        ),
+        Patch(facecolor=colors["Low PM / Medium Mort"], label="Low PM / Medium Mortality"),
         Patch(facecolor=colors["Low PM / High Mort"], label="Low PM / High Mortality"),
-        Patch(
-            facecolor=colors["Medium PM / Low Mort"], label="Medium PM / Low Mortality"
-        ),
+        Patch(facecolor=colors["Medium PM / Low Mort"], label="Medium PM / Low Mortality"),
         Patch(
             facecolor=colors["Medium PM / Medium Mort"],
             label="Medium PM / Medium Mortality",
@@ -569,19 +545,13 @@ def create_bivariate_choropleth(df_analysis, year=2020, save_html=True):
             facecolor=colors["High PM / Medium Mort"],
             label="High PM / Medium Mortality",
         ),
-        Patch(
-            facecolor=colors["High PM / High Mort"], label="High PM / High Mortality"
-        ),
+        Patch(facecolor=colors["High PM / High Mort"], label="High PM / High Mortality"),
         Patch(facecolor="lightgrey", label="No data"),
     ]
-    ax.legend(
-        handles=legend_elements, loc="lower left", bbox_to_anchor=(1, 0), fontsize=8
-    )
+    ax.legend(handles=legend_elements, loc="lower left", bbox_to_anchor=(1, 0), fontsize=8)
 
     plt.tight_layout()
-    fig_static.savefig(
-        FIGURES_DIR / f"bivariate_choropleth_{year}.png", dpi=300, bbox_inches="tight"
-    )
+    fig_static.savefig(FIGURES_DIR / f"bivariate_choropleth_{year}.png", dpi=300, bbox_inches="tight")
     logger.info(f"✓ Saved bivariate map: bivariate_choropleth_{year}.png")
     plt.close(fig_static)
 
@@ -611,14 +581,10 @@ def create_all_geospatial_visualizations(df_analysis):
     figures = {}
 
     # Mortality choropleth for 2020
-    figures["mortality_2020"] = create_choropleth_map(
-        df_analysis, year=2020, save_html=True
-    )
+    figures["mortality_2020"] = create_choropleth_map(df_analysis, year=2020, save_html=True)
 
     # Mortality choropleth for 2010 (comparison)
-    figures["mortality_2010"] = create_choropleth_map(
-        df_analysis, year=2010, save_html=True
-    )
+    figures["mortality_2010"] = create_choropleth_map(df_analysis, year=2010, save_html=True)
 
     # PM2.5 choropleth for 2020
     figures["pm25_2020"] = create_pollution_choropleth(
@@ -626,9 +592,7 @@ def create_all_geospatial_visualizations(df_analysis):
     )
 
     # Bivariate choropleth
-    figures["bivariate_2020"] = create_bivariate_choropleth(
-        df_analysis, year=2020, save_html=True
-    )
+    figures["bivariate_2020"] = create_bivariate_choropleth(df_analysis, year=2020, save_html=True)
 
     logger.info(f"✓ All geospatial figures saved to: {FIGURES_DIR}")
 

@@ -11,9 +11,13 @@ from pathlib import Path
 import numpy as np
 import pandas as pd
 
-from src.harmonization import (DEFAULT_PROP_FEMALE, DEFAULT_PROP_MALE,
-                               PROP_15_17_OF_15_24, clamp_proportion,
-                               prepare_alcaldia_dataframe)
+from src.harmonization import (
+    DEFAULT_PROP_FEMALE,
+    DEFAULT_PROP_MALE,
+    PROP_15_17_OF_15_24,
+    clamp_proportion,
+    prepare_alcaldia_dataframe,
+)
 from src.utils import ALCALDIA_CODES, CDMX_ENTIDAD
 
 

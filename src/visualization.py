@@ -164,9 +164,7 @@ def plot_alcaldia_boxplot(df_pm25):
 
     fig, ax = plt.subplots(figsize=(14, 8))
 
-    alcaldia_order = (
-        both_sex.groupby("alcaldia")["age_standardized_rate"].mean().sort_values().index
-    )
+    alcaldia_order = both_sex.groupby("alcaldia")["age_standardized_rate"].mean().sort_values().index
 
     sns.boxplot(
         data=both_sex,
@@ -199,9 +197,7 @@ def plot_pm25_by_alcaldia(df_pm25):
 
     pm25_order = both_sex.groupby("alcaldia")["pm25"].mean().sort_values().index
 
-    sns.boxplot(
-        data=both_sex, x="alcaldia", y="pm25", order=pm25_order, palette="Blues", ax=ax
-    )
+    sns.boxplot(data=both_sex, x="alcaldia", y="pm25", order=pm25_order, palette="Blues", ax=ax)
     ax.set_xlabel("")
     ax.set_ylabel("PM2.5 Concentration (μg/m³)", fontsize=11)
     ax.set_title(
@@ -293,9 +289,7 @@ def plot_sex_specific_effects(sex_models):
     errors = np.array(errors).T
 
     bars = ax.bar(sexes, coefs, color=["steelblue", "lightcoral"], alpha=0.8)
-    ax.errorbar(
-        sexes, coefs, yerr=errors, fmt="none", capsize=5, capthick=2, color="black"
-    )
+    ax.errorbar(sexes, coefs, yerr=errors, fmt="none", capsize=5, capthick=2, color="black")
     ax.axhline(y=0, color="red", linestyle="--", alpha=0.5)
     ax.set_ylabel("Coefficient for PM2.5 (per 10 μg/m³)")
     ax.set_title(

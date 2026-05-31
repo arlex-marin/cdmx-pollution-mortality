@@ -26,8 +26,7 @@ def get_project_root() -> Path:
 
 
 # Import all path constants from package __init__ (single source of truth)
-from . import (DATA_DIR, LOGS_DIR, OUTPUTS_DIR, PROCESSED_DATA_DIR,
-               PROJECT_ROOT, RAW_DATA_DIR)
+from . import DATA_DIR, LOGS_DIR, OUTPUTS_DIR, PROCESSED_DATA_DIR, PROJECT_ROOT, RAW_DATA_DIR
 
 
 def safe_int(value: object) -> int:
@@ -168,17 +167,13 @@ def read_csv_with_encoding(filepath, context="file", encodings_to_try=None):
 
     for encoding in encodings_to_try:
         try:
-            df = pd.read_csv(
-                filepath, encoding=encoding, engine="c", on_bad_lines="skip"
-            )
+            df = pd.read_csv(filepath, encoding=encoding, engine="c", on_bad_lines="skip")
             successful_encoding = encoding
             break
         except UnicodeDecodeError:
             continue
         except Exception as e:
-            _warnings.warn(
-                f"Unexpected error with encoding {encoding} for {context}: {e}"
-            )
+            _warnings.warn(f"Unexpected error with encoding {encoding} for {context}: {e}")
             continue
 
     if df is None:
@@ -187,8 +182,7 @@ def read_csv_with_encoding(filepath, context="file", encodings_to_try=None):
             df, successful_encoding = read_csv_flexible(filepath)
         except Exception as e:
             raise ValueError(
-                f"Could not read {filepath} for {context} with any encoding. "
-                f"Last error: {e}"
+                f"Could not read {filepath} for {context} with any encoding. " f"Last error: {e}"
             )
 
     if df is None or len(df) == 0:
