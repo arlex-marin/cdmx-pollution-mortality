@@ -300,6 +300,7 @@ Comprehensive documentation is available in both English and Spanish:
 - 05_validation_report_pollution.md - Pollution data validation results
 - 06_methodology_harmonization.md - Population harmonization strategy
 - 07_data_dictionary.md - Complete variable definitions
+- [quality_assessment.md](docs/quality_assessment.md) - Code & reproducibility quality assessment (93/100)
 
 ### Spanish Documentation (Documentación en Español)
 - 01_metodologia.md - Metodología detallada del estudio
@@ -309,6 +310,9 @@ Comprehensive documentation is available in both English and Spanish:
 - 05_reporte_validacion_contaminacion.md - Resultados de validación de contaminación
 - 06_metodologia_armonizacion.md - Estrategia de armonización poblacional
 - 07_diccionario_datos.md - Definiciones completas de variables
+
+### Engineering Evaluation
+A comprehensive critical evaluation of the system (architecture, git/github integration, limitations, bugs, and refinements) is available in the accompanying [CRITICAL_EVALUATION_REPORT.md](../cdmx-pollution-maturity/CRITICAL_EVALUATION_REPORT.md).
 
 ---
 

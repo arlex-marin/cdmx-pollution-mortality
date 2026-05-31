@@ -20,12 +20,11 @@ def get_project_root() -> Path:
     """Return project root directory (parent of src/)."""
     return Path(__file__).parent.parent
 
-PROJECT_ROOT = get_project_root()
-DATA_DIR = PROJECT_ROOT / "data"
-RAW_DATA_DIR = DATA_DIR / "raw"
-PROCESSED_DATA_DIR = DATA_DIR / "processed"
-OUTPUTS_DIR = PROJECT_ROOT / "outputs"
-LOGS_DIR = PROJECT_ROOT / "logs"
+# Import all path constants from package __init__ (single source of truth)
+from . import (
+    PROJECT_ROOT, DATA_DIR, RAW_DATA_DIR, PROCESSED_DATA_DIR,
+    OUTPUTS_DIR, LOGS_DIR
+)
 
 def safe_int(value):
     """Safely convert value to integer, handling strings and special characters."""
@@ -216,32 +215,6 @@ def get_integrated_dataset_path():
     """Get the path to the final analytical dataset."""
     from . import INTEGRATED_PROCESSED_DIR
     return INTEGRATED_PROCESSED_DIR / 'cdmx_analysis_dataset_2004_2022.csv'
-
-
-def get_shapefile_path():
-    """
-    Get the path to the CDMX shapefile using recursive search.
-
-    Returns:
-    --------
-    Path
-        Path to 09mun.shp
-
-    Raises:
-    -------
-    FileNotFoundError
-        If shapefile cannot be found
-    """
-    from . import SHAPEFILE_DIR
-
-    matches = list(SHAPEFILE_DIR.rglob('09mun.shp'))
-    if matches:
-        return matches[0]
-
-    raise FileNotFoundError(
-        f"Municipal shapefile '09mun.shp' not found in {SHAPEFILE_DIR}.\n"
-        "Please ensure the INEGI shapefile is properly extracted."
-    )
 
 
 # Alcaldía codes for CDMX

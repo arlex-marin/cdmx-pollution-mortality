@@ -3,7 +3,7 @@ Unit tests for geospatial.py module.
 
 Author: Arlex Marín
 Date: April 2026
-Updated: April 21, 2026 - Geopandas now required
+Updated: April 23, 2026 - Graceful skip when geopandas/shapefiles unavailable
 """
 
 import unittest
@@ -11,17 +11,41 @@ import pandas as pd
 import numpy as np
 from pathlib import Path
 
-# Geopandas is now a required dependency
-import geopandas as gpd
-from shapely.geometry import Polygon
+# Geopandas is an optional dependency for geospatial features
+try:
+    import geopandas as gpd
+    from shapely.geometry import Polygon
+    GEOPANDAS_AVAILABLE = True
+except ImportError:
+    gpd = None
+    Polygon = None
+    GEOPANDAS_AVAILABLE = False
 
-from src.geospatial import (
-    get_municipal_shapefile_path, get_entity_shapefile_path,
-    prepare_alcaldia_shapefile, create_choropleth_map,
-    create_pollution_choropleth, create_bivariate_choropleth
-)
+# Geospatial module import (may fail without geopandas)
+try:
+    from src.geospatial import (
+        get_municipal_shapefile_path, get_entity_shapefile_path,
+        prepare_alcaldia_shapefile, create_choropleth_map,
+        create_pollution_choropleth, create_bivariate_choropleth
+    )
+    GEOSPATIAL_MODULE_AVAILABLE = True
+except ImportError:
+    GEOSPATIAL_MODULE_AVAILABLE = False
+
+# Check if shapefiles exist on disk
+def _shapefile_exists(path_func):
+    """Check if a shapefile exists, catching all errors."""
+    try:
+        return path_func().exists()
+    except Exception:
+        return False
+
+_MUNICIPAL_SHP_EXISTS = GEOSPATIAL_MODULE_AVAILABLE and _shapefile_exists(get_municipal_shapefile_path) if GEOSPATIAL_MODULE_AVAILABLE else False
+_ENTITY_SHP_EXISTS = GEOSPATIAL_MODULE_AVAILABLE and _shapefile_exists(get_entity_shapefile_path) if GEOSPATIAL_MODULE_AVAILABLE else False
 
 
+@unittest.skipUnless(GEOPANDAS_AVAILABLE and GEOSPATIAL_MODULE_AVAILABLE and _MUNICIPAL_SHP_EXISTS,
+                     "Geopandas or municipal shapefile not available")
 class TestShapefilePaths(unittest.TestCase):
     """Test shapefile path functions."""
 
@@ -40,6 +64,8 @@ class TestShapefilePaths(unittest.TestCase):
         self.assertTrue('09ent' in path_str or 'entity' in path_str or 'shapefile' in path_str)
 
 
+@unittest.skipUnless(GEOPANDAS_AVAILABLE and GEOSPATIAL_MODULE_AVAILABLE and _MUNICIPAL_SHP_EXISTS,
+                     "Geopandas or municipal shapefile not available")
 class TestLoadShapefile(unittest.TestCase):
     """Test shapefile loading functions."""
 
@@ -47,31 +73,31 @@ class TestLoadShapefile(unittest.TestCase):
         """Test loading municipal shapefile."""
         from src.geospatial import load_cdmx_shapefile
 
-        # Skip if shapefile doesn't exist
         shapefile_path = get_municipal_shapefile_path()
         if not shapefile_path.exists():
             self.skipTest(f"Shapefile not found: {shapefile_path}")
 
-        gdf = load_cdmx_shapefile('municipal')
-        self.assertIsInstance(gdf, gpd.GeoDataFrame)
-        self.assertGreater(len(gdf), 0)
-        self.assertIn('geometry', gdf.columns)
+        gdf_result = load_cdmx_shapefile('municipal')
+        self.assertIsInstance(gdf_result, gpd.GeoDataFrame)
+        self.assertGreater(len(gdf_result), 0)
+        self.assertIn('geometry', gdf_result.columns)
 
     def test_load_cdmx_shapefile_entity(self):
         """Test loading entity shapefile."""
         from src.geospatial import load_cdmx_shapefile
 
-        # Skip if shapefile doesn't exist
         shapefile_path = get_entity_shapefile_path()
         if not shapefile_path.exists():
             self.skipTest(f"Shapefile not found: {shapefile_path}")
 
-        gdf = load_cdmx_shapefile('entity')
-        self.assertIsInstance(gdf, gpd.GeoDataFrame)
-        self.assertGreater(len(gdf), 0)
-        self.assertIn('geometry', gdf.columns)
+        gdf_result = load_cdmx_shapefile('entity')
+        self.assertIsInstance(gdf_result, gpd.GeoDataFrame)
+        self.assertGreater(len(gdf_result), 0)
+        self.assertIn('geometry', gdf_result.columns)
 
 
+@unittest.skipUnless(GEOPANDAS_AVAILABLE and GEOSPATIAL_MODULE_AVAILABLE,
+                     "Geopandas not available")
 class TestPrepareAlcaldiaShapefile(unittest.TestCase):
     """Test prepare_alcaldia_shapefile function."""
 
@@ -81,14 +107,13 @@ class TestPrepareAlcaldiaShapefile(unittest.TestCase):
 
     def test_prepare_with_sample_data(self):
         """Test with a sample GeoDataFrame."""
-        # Create a simple GeoDataFrame
-        gdf = gpd.GeoDataFrame({
+        gdf_sample = gpd.GeoDataFrame({
             "CVE_MUN": ["002", "003", "007", "010", "015"],
             "NOM_MUN": ["Azcapotzalco", "Coyoacán", "Iztapalapa", "Álvaro Obregón", "Cuauhtémoc"],
             "geometry": [Polygon([(0, 0), (1, 0), (1, 1), (0, 1)])] * 5
         })
 
-        result = prepare_alcaldia_shapefile(gdf)
+        result = prepare_alcaldia_shapefile(gdf_sample)
 
         self.assertIsInstance(result, gpd.GeoDataFrame)
         self.assertIn("alcaldia", result.columns)
@@ -97,16 +122,14 @@ class TestPrepareAlcaldiaShapefile(unittest.TestCase):
 
     def test_prepare_filters_non_cdmx(self):
         """Test that non-CDMX municipalities are filtered out."""
-        # Create GeoDataFrame with mixed municipalities
-        gdf = gpd.GeoDataFrame({
+        gdf_sample = gpd.GeoDataFrame({
             "CVE_MUN": ["002", "003", "999", "007"],
             "NOM_MUN": ["Azcapotzalco", "Coyoacán", "Other", "Iztapalapa"],
             "geometry": [Polygon([(0, 0), (1, 0), (1, 1), (0, 1)])] * 4
         })
 
-        result = prepare_alcaldia_shapefile(gdf)
+        result = prepare_alcaldia_shapefile(gdf_sample)
 
-        # Should only keep valid CDMX alcaldías
         self.assertEqual(len(result), 3)
         self.assertIn("Azcapotzalco", result["alcaldia"].values)
         self.assertIn("Coyoacan", result["alcaldia"].values)
@@ -114,6 +137,8 @@ class TestPrepareAlcaldiaShapefile(unittest.TestCase):
         self.assertNotIn("Other", result["alcaldia"].values)
 
 
+@unittest.skipUnless(GEOSPATIAL_MODULE_AVAILABLE,
+                     "Geospatial module not available (geopandas required)")
 class TestChoroplethCreation(unittest.TestCase):
     """Test choropleth creation functions."""
 
@@ -155,6 +180,8 @@ class TestChoroplethCreation(unittest.TestCase):
         self.assertTrue(callable(create_bivariate_choropleth))
 
 
+@unittest.skipUnless(GEOSPATIAL_MODULE_AVAILABLE,
+                     "Geospatial module not available (geopandas required)")
 class TestGeospatialImports(unittest.TestCase):
     """Test that all geospatial functions are properly exposed."""
 

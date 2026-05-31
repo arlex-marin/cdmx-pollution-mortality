@@ -67,8 +67,13 @@ class TestRunAnalysisImports(unittest.TestCase):
             self.fail(f"Failed to import visualization: {e}")
 
     def test_import_geospatial(self):
+        """Test importing geospatial module (requires geopandas)."""
         try:
-            from src import geospatial
+            import geopandas  # noqa: F401
+        except ImportError:
+            self.skipTest("geopandas not installed")
+        try:
+            from src import geospatial  # noqa: F401
             self.assertTrue(True)
         except ImportError as e:
             self.fail(f"Failed to import geospatial: {e}")

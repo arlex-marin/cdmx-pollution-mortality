@@ -309,6 +309,10 @@ Documentación completa disponible en inglés y español:
 - 05_reporte_validacion_contaminacion.md - Resultados de validación de datos de contaminación
 - 06_metodologia_armonizacion.md - Estrategia de armonización de población
 - 07_diccionario_datos.md - Definiciones completas de variables
+- [quality_assessment.md](docs/quality_assessment.md) - Evaluación de calidad del código y reproducibilidad (93/100)
+
+### Evaluación de Ingeniería
+Una evaluación crítica completa del sistema (arquitectura, integración git/github, limitaciones, bugs y refinamientos) está disponible en el [CRITICAL_EVALUATION_REPORT.md](../cdmx-pollution-maturity/CRITICAL_EVALUATION_REPORT.md) adjunto.
 
 ---
 

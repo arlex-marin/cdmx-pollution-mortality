@@ -81,7 +81,7 @@ from .utils import (
     read_csv_flexible, setup_logging, save_json, load_json, clamp_proportion,
     get_census_file_path, get_mortality_file_path, get_pollution_file_path,
     get_population_processed_path, get_mortality_processed_path,
-    get_integrated_dataset_path, get_shapefile_path,
+    get_integrated_dataset_path,
     ALCALDIA_CODES, ALCALDIA_NAME_TO_CODE, CDMX_ENTIDAD, CDMX_ENTIDAD_INT,
     HARMONIZED_AGE_GROUPS, WHO_WEIGHTS, LUNG_CANCER_CODES, POLLUTANTS,
     ALCALDIAS_WITH_POLLUTION, ALCALDIAS_WITHOUT_POLLUTION, CENSUS_YEARS,
