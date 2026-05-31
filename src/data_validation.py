@@ -592,7 +592,7 @@ def validate_mortality_data() -> list:
             total_lung_cancer += len(lung_cancer)
             years_with_data += 1
 
-            print(f"  ✓ {year}: {len(lung_cancer):,} lung cancer deaths "
+            logger.info(f"✓ {year}: {len(lung_cancer):,} lung cancer deaths "
                   f"({len(alcaldia_counts)} alcaldías)")
 
         except Exception as e:
@@ -720,7 +720,7 @@ def validate_pollution_data() -> dict:
 
         logger.info(f"Records: {results['total_records']}")
         logger.info(f"Years: {results['years']}")
-        print(f"  Alcaldías mapped: {results['alcaldias_mapped']}/16 "
+        logger.info(f"Alcaldías mapped: {results['alcaldias_mapped']}/16 "
               f"({results['mapping_success_rate']*100:.1f}% success)")
         logger.info(f"Pollutants found: {results['pollutants_found']}")
 
