@@ -33,6 +33,9 @@ except ImportError:
 from .utils import ALCALDIA_CODES, ALCALDIA_NAME_TO_CODE
 from . import SHAPEFILE_DIR, FIGURES_DIR, ensure_directories
 
+import logging
+logger = logging.getLogger(__name__)
+
 
 def get_municipal_shapefile_path():
     """
@@ -58,7 +61,7 @@ def get_municipal_shapefile_path():
             path = preferred[0]
         else:
             path = matches[0]
-        print(f"  Found shapefile: {path}")
+        logger.info(f"Found shapefile: {path}")
         return path
 
     # Provide helpful error message with extraction instructions
@@ -91,7 +94,7 @@ def get_entity_shapefile_path():
     if matches:
         preferred = [m for m in matches if 'conjunto_de_datos' in str(m)]
         path = preferred[0] if preferred else matches[0]
-        print(f"  Found entity shapefile: {path}")
+        logger.info(f"Found entity shapefile: {path}")
         return path
 
     raise FileNotFoundError(
@@ -100,7 +103,7 @@ def get_entity_shapefile_path():
     )
 
 
-def load_cdmx_shapefile(level='municipal'):
+def load_cdmx_shapefile(level: str = 'municipal') -> gpd.GeoDataFrame:
     """
     Load CDMX shapefile.
 
@@ -121,19 +124,19 @@ def load_cdmx_shapefile(level='municipal'):
         raise ValueError(f"Invalid level '{level}'. Use 'municipal' or 'entity'.")
 
     gdf = gpd.read_file(shapefile_path)
-    print(f"  Loaded shapefile: {shapefile_path.name}")
-    print(f"  Features: {len(gdf)}")
-    print(f"  CRS: {gdf.crs}")
+    logger.info(f"Loaded shapefile: {shapefile_path.name}")
+    logger.info(f"Features: {len(gdf)}")
+    logger.info(f"CRS: {gdf.crs}")
 
     # Ensure CRS is WGS84 for Plotly compatibility
     if gdf.crs is not None and str(gdf.crs).upper() != 'EPSG:4326':
-        print(f"  Converting CRS from {gdf.crs} to EPSG:4326")
+        logger.info(f"Converting CRS from {gdf.crs} to EPSG:4326")
         gdf = gdf.to_crs('EPSG:4326')
 
     return gdf
 
 
-def prepare_alcaldia_shapefile(gdf):
+def prepare_alcaldia_shapefile(gdf: gpd.GeoDataFrame) -> gpd.GeoDataFrame:
     """
     Prepare municipal shapefile for merging with analysis data.
 
@@ -180,12 +183,12 @@ def prepare_alcaldia_shapefile(gdf):
     # Keep only CDMX alcaldías
     gdf = gdf[gdf['alcaldia_code'].isin(ALCALDIA_CODES.keys())].copy()
 
-    print(f"  Prepared {len(gdf)} alcaldía boundaries")
+    logger.info(f"Prepared {len(gdf)} alcaldía boundaries")
 
     return gdf
 
 
-def create_choropleth_map(df_analysis, year=2020, save_html=True):
+def create_choropleth_map(df_analysis: pd.DataFrame, year: int = 2020, save_html: bool = True):
     """
     Create an interactive choropleth map of mortality rates.
 
@@ -202,7 +205,7 @@ def create_choropleth_map(df_analysis, year=2020, save_html=True):
     --------
     plotly.graph_objects.Figure or matplotlib.figure.Figure
     """
-    print(f"\n  Creating choropleth map for {year}...")
+    logger.info(f"Creating choropleth map for {year}...")
 
     ensure_directories()
 
@@ -226,7 +229,7 @@ def create_choropleth_map(df_analysis, year=2020, save_html=True):
     # Identify missing alcaldías
     missing = gdf_merged[gdf_merged['age_standardized_rate'].isna()]['alcaldia'].tolist()
     if missing:
-        print(f"  ⚠️ Missing data for: {missing}")
+        logger.warning(f"⚠️ Missing data for: {missing}")
 
     # Create static matplotlib choropleth
     fig_static, ax = plt.subplots(1, 1, figsize=(12, 10))
@@ -265,7 +268,7 @@ def create_choropleth_map(df_analysis, year=2020, save_html=True):
     plt.tight_layout()
     fig_static.savefig(FIGURES_DIR / f'choropleth_mortality_{year}.png', dpi=300, bbox_inches='tight')
     fig_static.savefig(FIGURES_DIR / f'choropleth_mortality_{year}.svg', bbox_inches='tight')
-    print(f"  ✓ Saved static map: choropleth_mortality_{year}.png")
+    logger.info(f"✓ Saved static map: choropleth_mortality_{year}.png")
 
     # Create interactive Plotly map
     fig_interactive = None
@@ -295,7 +298,7 @@ def create_choropleth_map(df_analysis, year=2020, save_html=True):
         )
 
         fig_interactive.write_html(FIGURES_DIR / f'choropleth_mortality_{year}.html')
-        print(f"  ✓ Saved interactive map: choropleth_mortality_{year}.html")
+        logger.info(f"✓ Saved interactive map: choropleth_mortality_{year}.html")
     elif save_html and not PLOTLY_AVAILABLE:
         warnings.warn("Plotly not available - skipping interactive map")
 
@@ -325,7 +328,7 @@ def create_pollution_choropleth(df_analysis, year=2020, pollutant='pm25', save_h
     --------
     plotly.graph_objects.Figure or matplotlib.figure.Figure
     """
-    print(f"\n  Creating pollution choropleth map for {year} ({pollutant.upper()})...")
+    logger.info(f"Creating pollution choropleth map for {year} ({pollutant.upper()})...")
 
     ensure_directories()
 
@@ -349,7 +352,7 @@ def create_pollution_choropleth(df_analysis, year=2020, pollutant='pm25', save_h
     # Identify missing alcaldías
     missing = gdf_merged[gdf_merged[pollutant].isna()]['alcaldia'].tolist()
     if missing:
-        print(f"  ⚠️ Missing data for: {missing}")
+        logger.warning(f"⚠️ Missing data for: {missing}")
 
     # Pollutant display names and units
     pollutant_info = {
@@ -399,7 +402,7 @@ def create_pollution_choropleth(df_analysis, year=2020, pollutant='pm25', save_h
 
     plt.tight_layout()
     fig_static.savefig(FIGURES_DIR / f'choropleth_{pollutant}_{year}.png', dpi=300, bbox_inches='tight')
-    print(f"  ✓ Saved static map: choropleth_{pollutant}_{year}.png")
+    logger.info(f"✓ Saved static map: choropleth_{pollutant}_{year}.png")
 
     # Create interactive Plotly map
     fig_interactive = None
@@ -426,7 +429,7 @@ def create_pollution_choropleth(df_analysis, year=2020, pollutant='pm25', save_h
         )
 
         fig_interactive.write_html(FIGURES_DIR / f'choropleth_{pollutant}_{year}.html')
-        print(f"  ✓ Saved interactive map: choropleth_{pollutant}_{year}.html")
+        logger.info(f"✓ Saved interactive map: choropleth_{pollutant}_{year}.html")
 
     plt.close(fig_static)
 
@@ -452,7 +455,7 @@ def create_bivariate_choropleth(df_analysis, year=2020, save_html=True):
     --------
     matplotlib.figure.Figure
     """
-    print(f"\n  Creating bivariate choropleth map for {year}...")
+    logger.info(f"Creating bivariate choropleth map for {year}...")
 
     ensure_directories()
 
@@ -541,7 +544,7 @@ def create_bivariate_choropleth(df_analysis, year=2020, save_html=True):
 
     plt.tight_layout()
     fig_static.savefig(FIGURES_DIR / f'bivariate_choropleth_{year}.png', dpi=300, bbox_inches='tight')
-    print(f"  ✓ Saved bivariate map: bivariate_choropleth_{year}.png")
+    logger.info(f"✓ Saved bivariate map: bivariate_choropleth_{year}.png")
     plt.close(fig_static)
 
     return fig_static
@@ -561,9 +564,9 @@ def create_all_geospatial_visualizations(df_analysis):
     dict
         Dictionary of created figures
     """
-    print("\n" + "=" * 70)
-    print("CREATING GEOSPATIAL VISUALIZATIONS")
-    print("=" * 70)
+    logger.info("" + "=" * 70)
+    logger.info("CREATING GEOSPATIAL VISUALIZATIONS")
+    logger.info("=" * 70)
 
     ensure_directories()
 
@@ -581,7 +584,7 @@ def create_all_geospatial_visualizations(df_analysis):
     # Bivariate choropleth
     figures['bivariate_2020'] = create_bivariate_choropleth(df_analysis, year=2020, save_html=True)
 
-    print(f"\n  ✓ All geospatial figures saved to: {FIGURES_DIR}")
+    logger.info(f"✓ All geospatial figures saved to: {FIGURES_DIR}")
 
     return figures
 

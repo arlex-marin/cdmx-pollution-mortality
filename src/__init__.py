@@ -78,7 +78,7 @@ def ensure_directories():
 # Import all public functions for easier access
 from .utils import (
     safe_int, normalize_string, format_number, format_percent, format_pvalue,
-    read_csv_flexible, setup_logging, save_json, load_json, clamp_proportion,
+    read_csv_flexible, read_csv_with_encoding, setup_logging, save_json, load_json, clamp_proportion,
     get_census_file_path, get_mortality_file_path, get_pollution_file_path,
     get_population_processed_path, get_mortality_processed_path,
     get_integrated_dataset_path,

@@ -13,8 +13,11 @@ from pathlib import Path
 from datetime import datetime
 import warnings
 
+import logging
+logger = logging.getLogger(__name__)
+
 from .utils import (
-    safe_int, read_csv_flexible, save_json, format_number,
+    safe_int, read_csv_flexible, read_csv_with_encoding, save_json, format_number,
     ALCALDIA_CODES, CDMX_ENTIDAD, HARMONIZED_AGE_GROUPS, WHO_WEIGHTS,
     CENSUS_YEARS, get_census_file_path, normalize_string, clamp_proportion
 )
@@ -42,9 +45,7 @@ def read_census_file_safe(filepath, year):
     """
     Safely read a census file with proper encoding detection.
 
-    This function attempts multiple encodings and falls back to a flexible
-    CSV reader if standard methods fail. It provides clear error messages
-    when all attempts fail.
+    Delegates to the canonical :func:`utils.read_csv_with_encoding`.
 
     Parameters:
     -----------
@@ -63,37 +64,8 @@ def read_census_file_safe(filepath, year):
     ValueError
         If file cannot be read with any encoding
     """
-    encodings_to_try = ['utf-8', 'latin-1', 'cp1252', 'iso-8859-1']
-    df = None
-    successful_encoding = None
-
-    for encoding in encodings_to_try:
-        try:
-            df = pd.read_csv(filepath, encoding=encoding, engine='c', on_bad_lines='skip')
-            successful_encoding = encoding
-            break
-        except UnicodeDecodeError:
-            # Expected for wrong encoding - continue trying
-            continue
-        except Exception as e:
-            # Unexpected error - log but continue trying other encodings
-            warnings.warn(f"Unexpected error with encoding {encoding} for {year}: {e}")
-            continue
-
-    if df is None:
-        # Fall back to flexible reader for malformed CSV files
-        try:
-            df, successful_encoding = read_csv_flexible(filepath)
-        except Exception as e:
-            raise ValueError(
-                f"Could not read census file {filepath} for year {year} with any encoding. "
-                f"Last error: {e}"
-            )
-
-    if df is None or len(df) == 0:
-        raise ValueError(f"Census file {filepath} appears to be empty")
-
-    print(f"    Read {year} census with encoding: {successful_encoding}")
+    df, successful_encoding = read_csv_with_encoding(filepath, context=str(year))
+    logger.info(f"Read {year} census with encoding: {successful_encoding}")
     return df
 
 
@@ -199,7 +171,7 @@ def load_census_2000():
     df_2000_props : pd.DataFrame
         Sex proportions by age group for 2000
     """
-    print("\n  Loading 2000 census...")
+    logger.info("Loading 2000 census...")
 
     filepath = get_census_file_path(2000)
     df = read_census_file_safe(filepath, 2000)
@@ -283,7 +255,7 @@ def load_census_2000():
     df_2000 = pd.DataFrame(records)
     df_2000_props = pd.DataFrame(sex_props).drop_duplicates()
 
-    print(f"    Created {len(df_2000)} records")
+    logger.info(f"Created {len(df_2000)} records")
     return df_2000, df_2000_props
 
 
@@ -301,7 +273,7 @@ def load_census_2005():
     df_2005_props : pd.DataFrame
         Sex proportions by age group for 2005
     """
-    print("\n  Loading 2005 census...")
+    logger.info("Loading 2005 census...")
 
     filepath = get_census_file_path(2005)
     df = read_census_file_safe(filepath, 2005)
@@ -389,7 +361,7 @@ def load_census_2005():
     df_2005 = pd.DataFrame(records)
     df_2005_props = pd.DataFrame(sex_props).drop_duplicates()
 
-    print(f"    Created {len(df_2005)} records")
+    logger.info(f"Created {len(df_2005)} records")
     return df_2005, df_2005_props
 
 
@@ -407,7 +379,7 @@ def load_census_2010():
     df_2010_props : pd.DataFrame
         Sex proportions by age group for 2010
     """
-    print("\n  Loading 2010 census...")
+    logger.info("Loading 2010 census...")
 
     filepath = get_census_file_path(2010)
     df = read_census_file_safe(filepath, 2010)
@@ -493,7 +465,7 @@ def load_census_2010():
     df_2010 = pd.DataFrame(records)
     df_2010_props = pd.DataFrame(sex_props).drop_duplicates()
 
-    print(f"    Created {len(df_2010)} records")
+    logger.info(f"Created {len(df_2010)} records")
     return df_2010, df_2010_props
 
 
@@ -511,7 +483,7 @@ def load_census_2020():
     df_2020_props : pd.DataFrame
         Sex proportions by age group for 2020
     """
-    print("\n  Loading 2020 census...")
+    logger.info("Loading 2020 census...")
 
     filepath = get_census_file_path(2020)
     df = read_census_file_safe(filepath, 2020)
@@ -591,7 +563,7 @@ def load_census_2020():
     df_2020 = pd.DataFrame(records)
     df_2020_props = pd.DataFrame(sex_props).drop_duplicates()
 
-    print(f"    Created {len(df_2020)} records")
+    logger.info(f"Created {len(df_2020)} records")
     return df_2020, df_2020_props
 
 
@@ -616,7 +588,7 @@ def refine_2000_with_backcast(df_2000, df_2005_props, df_2010_props):
     pd.DataFrame
         Refined 2000 population estimates
     """
-    print("    Refining 2000 estimates with backcast...")
+    logger.info("Refining 2000 estimates with backcast...")
 
     # Combine 2005 and 2010 proportions
     props_combined = df_2005_props[['alcaldia', 'age_group', 'prop_female_2005']].merge(
@@ -691,7 +663,7 @@ def refine_2005_15_24(df_2005):
     pd.DataFrame
         Refined 2005 population estimates
     """
-    print("    Refining 2005 15-24 split...")
+    logger.info("Refining 2005 15-24 split...")
 
     # Separate 15-24 records from others
     df_2005_15_24 = df_2005[df_2005['age_group'].isin(['15-17', '18-24'])].copy()
@@ -788,7 +760,7 @@ def refine_2010_25_59(df_2010, df_2005, df_2020):
     pd.DataFrame
         Refined 2010 population estimates
     """
-    print("    Refining 2010 25-59 sex proportions...")
+    logger.info("Refining 2010 25-59 sex proportions...")
 
     # Calculate 2005 proportions for 25-59
     prop_2005_25_59 = df_2005[df_2005['age_group'] == '25-59'].copy()
@@ -885,7 +857,7 @@ def create_annual_interpolation(df_2000, df_2005, df_2010, df_2020):
     pd.DataFrame
         Annual population estimates for all years 2000-2022
     """
-    print("\n  Creating annual interpolation...")
+    logger.info("Creating annual interpolation...")
 
     # Combine all census years
     df_census = pd.concat([df_2000, df_2005, df_2010, df_2020], ignore_index=True)
@@ -950,11 +922,11 @@ def create_annual_interpolation(df_2000, df_2005, df_2010, df_2020):
     df_annual = df_annual[df_annual['population'] > 0]
     df_annual = df_annual.sort_values(['alcaldia', 'year', 'age_group', 'sex']).reset_index(drop=True)
 
-    print(f"    Created {len(df_annual):,} annual records")
+    logger.info(f"Created {len(df_annual):,} annual records")
     return df_annual
 
 
-def harmonize_population():
+def harmonize_population() -> pd.DataFrame:
     """
     Main harmonization pipeline.
 
@@ -970,37 +942,37 @@ def harmonize_population():
     pd.DataFrame
         Annual harmonized population estimates
     """
-    print("\n" + "=" * 70)
-    print("POPULATION DATA HARMONIZATION")
-    print("=" * 70)
+    logger.info("" + "=" * 70)
+    logger.info("POPULATION DATA HARMONIZATION")
+    logger.info("=" * 70)
 
     ensure_directories()
 
     # Phase 1: Load all censuses
-    print("\nPhase 1: Loading census data...")
+    logger.info("Phase 1: Loading census data...")
     df_2000_raw, df_2000_props = load_census_2000()
     df_2005_raw, df_2005_props = load_census_2005()
     df_2010_raw, df_2010_props = load_census_2010()
     df_2020_raw, df_2020_props = load_census_2020()
 
     # Phase 2: Refine estimates
-    print("\nPhase 2: Refining estimates...")
+    logger.info("Phase 2: Refining estimates...")
     df_2000 = refine_2000_with_backcast(df_2000_raw, df_2005_props, df_2010_props)
     df_2005 = refine_2005_15_24(df_2005_raw)
     df_2010 = refine_2010_25_59(df_2010_raw, df_2005, df_2020_raw)
     df_2020 = df_2020_raw.copy()
 
     # Phase 3: Annual interpolation
-    print("\nPhase 3: Interpolating annual estimates...")
+    logger.info("Phase 3: Interpolating annual estimates...")
     df_annual = create_annual_interpolation(df_2000, df_2005, df_2010, df_2020)
 
     # Phase 4: Save outputs
-    print("\nPhase 4: Saving outputs...")
+    logger.info("Phase 4: Saving outputs...")
 
     # Save long format
     output_path = POPULATION_PROCESSED_DIR / 'cdmx_population_harmonized_2000_2022.csv'
     df_annual.to_csv(output_path, index=False)
-    print(f"  ✓ Saved to: {output_path}")
+    logger.info(f"✓ Saved to: {output_path}")
 
     # Save wide format
     df_wide = df_annual.pivot_table(
@@ -1011,10 +983,10 @@ def harmonize_population():
     ).reset_index()
     output_path_wide = POPULATION_PROCESSED_DIR / 'cdmx_population_harmonized_2000_2022_wide.csv'
     df_wide.to_csv(output_path_wide, index=False)
-    print(f"  ✓ Saved wide format to: {output_path_wide}")
+    logger.info(f"✓ Saved wide format to: {output_path_wide}")
 
     # Phase 5: Generate metadata
-    print("\nPhase 5: Generating metadata...")
+    logger.info("Phase 5: Generating metadata...")
     metadata = {
         'title': 'Harmonized Population Data for Mexico City',
         'description': 'Annual population estimates by alcaldía, age group, and sex for 2000-2022',
@@ -1040,18 +1012,18 @@ def harmonize_population():
 
     metadata_path = POPULATION_PROCESSED_DIR / 'cdmx_population_metadata.json'
     save_json(metadata, metadata_path)
-    print(f"  ✓ Metadata saved to: {metadata_path}")
+    logger.info(f"✓ Metadata saved to: {metadata_path}")
 
     # Summary statistics
-    print("\n" + "=" * 70)
-    print("HARMONIZATION COMPLETE")
-    print("=" * 70)
-    print(f"\n  Summary Statistics:")
-    print(f"    Years: {df_annual['year'].min()} - {df_annual['year'].max()}")
-    print(f"    Total records: {len(df_annual):,}")
-    print(f"    Alcaldías: {df_annual['alcaldia'].nunique()}")
-    print(f"    Age groups: {len(HARMONIZED_AGE_GROUPS)}")
-    print(f"    Total CDMX population (2022): {format_number(df_annual[df_annual['year'] == 2022]['population'].sum())}")
+    logger.info("" + "=" * 70)
+    logger.info("HARMONIZATION COMPLETE")
+    logger.info("=" * 70)
+    logger.info(f"Summary Statistics:")
+    logger.info(f"Years: {df_annual['year'].min()} - {df_annual['year'].max()}")
+    logger.info(f"Total records: {len(df_annual):,}")
+    logger.info(f"Alcaldías: {df_annual['alcaldia'].nunique()}")
+    logger.info(f"Age groups: {len(HARMONIZED_AGE_GROUPS)}")
+    logger.info(f"Total CDMX population (2022): {format_number(df_annual[df_annual['year'] == 2022]['population'].sum())}")
 
     return df_annual
 

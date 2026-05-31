@@ -11,8 +11,6 @@ from pathlib import Path
 from datetime import datetime
 import warnings
 
-warnings.filterwarnings('ignore')
-
 import statsmodels.api as sm
 from scipy.stats import pearsonr, spearmanr
 
@@ -23,8 +21,11 @@ from .utils import (
 )
 from . import TABLES_DIR, MODELS_DIR, ensure_directories
 
+import logging
+logger = logging.getLogger(__name__)
 
-def prepare_analysis_sample():
+
+def prepare_analysis_sample() -> tuple[pd.DataFrame, pd.DataFrame]:
     """
     Load analysis data and prepare samples for statistical analysis.
 
@@ -48,14 +49,14 @@ def prepare_analysis_sample():
     df['alcaldia_code'] = df['alcaldia'].map(ALCALDIA_NAME_TO_CODE).astype(int)
     df_pm25['alcaldia_code'] = df_pm25['alcaldia'].map(ALCALDIA_NAME_TO_CODE).astype(int)
 
-    print(f"  Analysis sample: {len(df_pm25)} records with PM2.5 data")
-    print(f"  Alcaldías: {df_pm25['alcaldia'].nunique()}")
-    print(f"  Years: {df_pm25['year'].min()} - {df_pm25['year'].max()}")
+    logger.info(f"Analysis sample: {len(df_pm25)} records with PM2.5 data")
+    logger.info(f"Alcaldías: {df_pm25['alcaldia'].nunique()}")
+    logger.info(f"Years: {df_pm25['year'].min()} - {df_pm25['year'].max()}")
 
     return df, df_pm25
 
 
-def descriptive_statistics(df_pm25):
+def descriptive_statistics(df_pm25: pd.DataFrame) -> pd.DataFrame:
     """Generate descriptive statistics."""
     both_sex = df_pm25[df_pm25['sex'] == 'Both'].copy()
 
@@ -89,12 +90,12 @@ def descriptive_statistics(df_pm25):
 
     df_stats = pd.DataFrame(stats)
     df_stats.to_csv(TABLES_DIR / 'descriptive_statistics.csv', index=False)
-    print(f"  ✓ Descriptive statistics saved")
+    logger.info(f"✓ Descriptive statistics saved")
 
     return df_stats
 
 
-def correlation_analysis(df_pm25):
+def correlation_analysis(df_pm25: pd.DataFrame) -> pd.DataFrame:
     """Perform correlation analysis."""
     both_sex = df_pm25[df_pm25['sex'] == 'Both'].copy()
 
@@ -123,22 +124,22 @@ def correlation_analysis(df_pm25):
     df_corr = pd.DataFrame(results)
     df_corr.to_csv(TABLES_DIR / 'correlation_results.csv', index=False)
 
-    print(f"\n  Pearson Correlations with Age-Standardized Rate:")
+    logger.info(f"Pearson Correlations with Age-Standardized Rate:")
     for _, row in df_corr[df_corr['mortality'] == 'age_standardized_rate'].iterrows():
         sig = "***" if row['pearson_p'] < 0.001 else ("**" if row['pearson_p'] < 0.01 else ("*" if row['pearson_p'] < 0.05 else ""))
-        print(f"    {row['pollutant']:6}: r = {row['pearson_r']:+.3f} {sig}")
+        logger.info(f"{row['pollutant']:6}: r = {row['pearson_r']:+.3f} {sig}")
 
     return df_corr
 
 
-def panel_regression(df_pm25):
+def panel_regression(df_pm25: pd.DataFrame) -> tuple[dict, pd.DataFrame]:
     """Perform panel regression with cluster-robust standard errors."""
     both_sex = df_pm25[df_pm25['sex'] == 'Both'].copy()
     both_sex = both_sex.dropna(subset=['pm25', 'age_standardized_rate'])
     both_sex['pm25_10'] = both_sex['pm25'] / 10
     both_sex['log_asr'] = np.log(both_sex['age_standardized_rate'])
 
-    print(f"\n  Analysis sample: {len(both_sex)} observations")
+    logger.info(f"Analysis sample: {len(both_sex)} observations")
 
     models = {}
     results_table = []
@@ -146,7 +147,9 @@ def panel_regression(df_pm25):
     # Model 1: Pooled OLS
     X1 = sm.add_constant(both_sex['pm25_10'])
     y1 = both_sex['age_standardized_rate']
-    model1 = sm.OLS(y1, X1).fit(cov_type='HC3')
+    with warnings.catch_warnings():
+        warnings.filterwarnings('ignore', category=UserWarning, module='statsmodels')
+        model1 = sm.OLS(y1, X1).fit(cov_type='HC3')
     models['pooled_ols'] = model1
     results_table.append({
         'model': 'Pooled OLS',
@@ -162,7 +165,9 @@ def panel_regression(df_pm25):
     X2['pm25_10'] = both_sex['pm25_10'].values
     X2 = sm.add_constant(X2)
     y2 = both_sex['age_standardized_rate'].values
-    model2 = sm.OLS(y2, X2).fit(cov_type='cluster', cov_kwds={'groups': both_sex['alcaldia_code']})
+    with warnings.catch_warnings():
+        warnings.filterwarnings('ignore', category=UserWarning, module='statsmodels')
+        model2 = sm.OLS(y2, X2).fit(cov_type='cluster', cov_kwds={'groups': both_sex['alcaldia_code']})
     models['alcaldia_fe'] = model2
     results_table.append({
         'model': 'Alcaldía FE',
@@ -179,7 +184,9 @@ def panel_regression(df_pm25):
     X3 = pd.concat([X3, year_dummies], axis=1)
     X3['pm25_10'] = both_sex['pm25_10'].values
     X3 = sm.add_constant(X3)
-    model3 = sm.OLS(y2, X3).fit(cov_type='cluster', cov_kwds={'groups': both_sex['alcaldia_code']})
+    with warnings.catch_warnings():
+        warnings.filterwarnings('ignore', category=UserWarning, module='statsmodels')
+        model3 = sm.OLS(y2, X3).fit(cov_type='cluster', cov_kwds={'groups': both_sex['alcaldia_code']})
     models['twoway_fe'] = model3
     results_table.append({
         'model': 'Two-Way FE',
@@ -192,7 +199,9 @@ def panel_regression(df_pm25):
 
     # Model 4: Log-Linear
     y4 = both_sex['log_asr'].values
-    model4 = sm.OLS(y4, X3).fit(cov_type='cluster', cov_kwds={'groups': both_sex['alcaldia_code']})
+    with warnings.catch_warnings():
+        warnings.filterwarnings('ignore', category=UserWarning, module='statsmodels')
+        model4 = sm.OLS(y4, X3).fit(cov_type='cluster', cov_kwds={'groups': both_sex['alcaldia_code']})
     effect_pct = (np.exp(model4.params['pm25_10']) - 1) * 100
     models['log_linear'] = model4
     results_table.append({
@@ -208,10 +217,10 @@ def panel_regression(df_pm25):
     df_results = pd.DataFrame(results_table)
     df_results.to_csv(TABLES_DIR / 'regression_results_summary.csv', index=False)
 
-    print(f"\n  Regression Results (Two-Way FE):")
-    print(f"    PM2.5 (per 10 μg/m³): {model3.params['pm25_10']:.3f} (SE: {model3.bse['pm25_10']:.3f})")
-    print(f"    {format_pvalue(model3.pvalues['pm25_10'])}")
-    print(f"    R-squared: {model3.rsquared:.3f}")
+    logger.info(f"Regression Results (Two-Way FE):")
+    logger.info(f"PM2.5 (per 10 μg/m³): {model3.params['pm25_10']:.3f} (SE: {model3.bse['pm25_10']:.3f})")
+    logger.info(f"{format_pvalue(model3.pvalues['pm25_10'])}")
+    logger.info(f"R-squared: {model3.rsquared:.3f}")
 
     # Save full model summaries
     with open(MODELS_DIR / 'regression_results.txt', 'w') as f:
@@ -226,12 +235,12 @@ def panel_regression(df_pm25):
             f.write(model.summary().as_text())
             f.write("\n\n")
 
-    print(f"  ✓ Regression results saved")
+    logger.info(f"✓ Regression results saved")
 
     return models, df_results
 
 
-def sex_specific_analysis(df_pm25):
+def sex_specific_analysis(df_pm25: pd.DataFrame) -> tuple[dict, pd.DataFrame]:
     """Perform sex-specific regression analysis."""
     results = {}
     results_table = []
@@ -248,7 +257,9 @@ def sex_specific_analysis(df_pm25):
         X = sm.add_constant(X)
         y = df_sex['age_standardized_rate'].values
 
-        model = sm.OLS(y, X).fit(cov_type='cluster', cov_kwds={'groups': df_sex['alcaldia_code']})
+        with warnings.catch_warnings():
+            warnings.filterwarnings('ignore', category=UserWarning, module='statsmodels')
+            model = sm.OLS(y, X).fit(cov_type='cluster', cov_kwds={'groups': df_sex['alcaldia_code']})
         results[sex] = model
 
         results_table.append({
@@ -263,9 +274,9 @@ def sex_specific_analysis(df_pm25):
     df_sex_results = pd.DataFrame(results_table)
     df_sex_results.to_csv(TABLES_DIR / 'sex_specific_regression.csv', index=False)
 
-    print(f"\n  Sex-Specific Results (Two-Way FE):")
+    logger.info(f"Sex-Specific Results (Two-Way FE):")
     for _, row in df_sex_results.iterrows():
-        print(f"    {row['sex']}: β = {row['coef']:.3f} (SE: {row['se']:.3f}), {format_pvalue(row['p_value'])}")
+        logger.info(f"{row['sex']}: β = {row['coef']:.3f} (SE: {row['se']:.3f}), {format_pvalue(row['p_value'])}")
 
     # Save sex-specific summaries
     with open(MODELS_DIR / 'sex_specific_results.txt', 'w') as f:
@@ -276,21 +287,21 @@ def sex_specific_analysis(df_pm25):
             f.write(model.summary().as_text())
             f.write("\n\n")
 
-    print(f"  ✓ Sex-specific results saved")
+    logger.info(f"✓ Sex-specific results saved")
 
     return results, df_sex_results
 
 
-def run_analysis():
+def run_analysis() -> tuple[pd.DataFrame, dict]:
     """Main analysis pipeline."""
-    print("\n" + "=" * 70)
-    print("STATISTICAL ANALYSIS")
-    print("=" * 70)
+    logger.info("" + "=" * 70)
+    logger.info("STATISTICAL ANALYSIS")
+    logger.info("=" * 70)
 
     ensure_directories()
 
-    print(f"\n  Alcaldías included: {len(ALCALDIAS_WITH_POLLUTION)}")
-    print(f"  Alcaldías excluded: {', '.join(ALCALDIAS_WITHOUT_POLLUTION)}")
+    logger.info(f"Alcaldías included: {len(ALCALDIAS_WITH_POLLUTION)}")
+    logger.info(f"Alcaldías excluded: {', '.join(ALCALDIAS_WITHOUT_POLLUTION)}")
 
     # Load data
     df, df_pm25 = prepare_analysis_sample()
@@ -325,8 +336,8 @@ def run_analysis():
     metadata_path = TABLES_DIR.parent / 'analysis_metadata.json'
     save_json(metadata, metadata_path)
 
-    print("\n" + "=" * 70)
-    print("ANALYSIS COMPLETE")
-    print("=" * 70)
+    logger.info("" + "=" * 70)
+    logger.info("ANALYSIS COMPLETE")
+    logger.info("=" * 70)
 
     return df_pm25, models

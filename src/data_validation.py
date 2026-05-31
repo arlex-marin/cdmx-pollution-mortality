@@ -18,12 +18,15 @@ from datetime import datetime
 import warnings
 
 from .utils import (
-    safe_int, read_csv_flexible, save_json, format_number, format_percent,
+    safe_int, read_csv_flexible, read_csv_with_encoding, save_json, format_number, format_percent,
     ALCALDIA_CODES, CDMX_ENTIDAD, CDMX_ENTIDAD_INT, LUNG_CANCER_CODES,
     HARMONIZED_AGE_GROUPS, POLLUTANTS, normalize_string,
     get_census_file_path, get_mortality_file_path, get_pollution_file_path
 )
 from . import LOGS_DIR, CENSUS_RAW_DIR, MORTALITY_RAW_DIR, POLLUTION_RAW_DIR
+
+import logging
+logger = logging.getLogger(__name__)
 
 
 # =============================================================================
@@ -34,8 +37,7 @@ def read_census_with_encoding_detection(filepath, year):
     """
     Read census file with proper encoding detection.
 
-    Attempts multiple common encodings and falls back to a flexible CSV reader
-    if standard methods fail. Provides clear error messages when all attempts fail.
+    Delegates to the canonical :func:`utils.read_csv_with_encoding`.
 
     Parameters:
     -----------
@@ -56,37 +58,7 @@ def read_census_with_encoding_detection(filepath, year):
     ValueError
         If file cannot be read with any encoding
     """
-    encodings_to_try = ['utf-8', 'latin-1', 'cp1252', 'iso-8859-1']
-    df = None
-    successful_encoding = None
-
-    for encoding in encodings_to_try:
-        try:
-            df = pd.read_csv(filepath, encoding=encoding, engine='c', on_bad_lines='skip')
-            successful_encoding = encoding
-            break
-        except UnicodeDecodeError:
-            # Expected for wrong encoding - continue trying
-            continue
-        except Exception as e:
-            # Unexpected error - log but continue trying other encodings
-            warnings.warn(f"Unexpected error with encoding {encoding} for {year} census: {e}")
-            continue
-
-    if df is None:
-        # Fall back to flexible reader for malformed CSV files
-        try:
-            df, successful_encoding = read_csv_flexible(filepath)
-        except Exception as e:
-            raise ValueError(
-                f"Could not read census file {filepath} for year {year} with any encoding. "
-                f"Last error: {e}"
-            )
-
-    if df is None or len(df) == 0:
-        raise ValueError(f"Census file {filepath} appears to be empty")
-
-    return df, successful_encoding
+    return read_csv_with_encoding(filepath, context=str(year))
 
 
 def validate_age_group_coverage(df_alcaldias, year):
@@ -465,7 +437,7 @@ def validate_census_2020():
         }
 
 
-def validate_all_censuses():
+def validate_all_censuses() -> list:
     """
     Run validation on all census files (2000, 2005, 2010, 2020).
 
@@ -474,9 +446,9 @@ def validate_all_censuses():
     list
         List of validation result dictionaries
     """
-    print("\n" + "=" * 80)
-    print("CENSUS DATA VALIDATION")
-    print("=" * 80)
+    logger.info("" + "=" * 80)
+    logger.info("CENSUS DATA VALIDATION")
+    logger.info("=" * 80)
 
     results = []
 
@@ -493,14 +465,14 @@ def validate_all_censuses():
             results.append(result)
 
             if result['status'] == 'OK':
-                print(f"  ✓ {result['year']}: {format_number(result['totals']['total'])} total population")
+                logger.info(f"✓ {result['year']}: {format_number(result['totals']['total'])} total population")
                 if result.get('alcaldias_missing'):
-                    print(f"    ⚠️ Missing alcaldías: {result['alcaldias_missing']}")
+                    logger.warning(f"⚠️ Missing alcaldías: {result['alcaldias_missing']}")
                 if result.get('notes'):
                     for note in result['notes']:
-                        print(f"    ℹ️ {note}")
+                        logger.info(f"ℹ️ {note}")
             else:
-                print(f"  ✗ {result['year']}: {result.get('error', 'Unknown error')}")
+                logger.error(f"✗ {result['year']}: {result.get('error', 'Unknown error')}")
 
         except Exception as e:
             results.append({
@@ -508,13 +480,13 @@ def validate_all_censuses():
                 'status': 'ERROR',
                 'error': str(e)
             })
-            print(f"  ✗ Error validating census: {e}")
+            logger.error(f"✗ Error validating census: {e}")
 
     # Save results
     timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
     output_path = LOGS_DIR / f'census_validation_{timestamp}.json'
     save_json(results, output_path)
-    print(f"\n  ✓ Results saved to: {output_path}")
+    logger.info(f"✓ Results saved to: {output_path}")
 
     return results
 
@@ -523,7 +495,7 @@ def validate_all_censuses():
 # MORTALITY VALIDATION FUNCTIONS
 # =============================================================================
 
-def validate_mortality_data():
+def validate_mortality_data() -> list:
     """
     Validate mortality data across all available years (2000-2023).
 
@@ -538,9 +510,9 @@ def validate_mortality_data():
     list
         List of validation result dictionaries by year
     """
-    print("\n" + "=" * 80)
-    print("MORTALITY DATA VALIDATION")
-    print("=" * 80)
+    logger.info("" + "=" * 80)
+    logger.info("MORTALITY DATA VALIDATION")
+    logger.info("=" * 80)
 
     results = []
     total_lung_cancer = 0
@@ -556,7 +528,7 @@ def validate_mortality_data():
                 'status': 'MISSING',
                 'error': f'File not found: {filepath}'
             })
-            print(f"  ⚠️ {year}: File not found")
+            logger.warning(f"⚠️ {year}: File not found")
             continue
 
         try:
@@ -588,7 +560,7 @@ def validate_mortality_data():
                     'status': 'ERROR',
                     'error': f'Missing columns: {missing}'
                 })
-                print(f"  ✗ {year}: Missing columns: {missing}")
+                logger.error(f"✗ {year}: Missing columns: {missing}")
                 continue
 
             # Convert to numeric
@@ -629,12 +601,12 @@ def validate_mortality_data():
                 'status': 'ERROR',
                 'error': str(e)
             })
-            print(f"  ✗ {year}: Error - {e}")
+            logger.error(f"✗ {year}: Error - {e}")
 
     # Summary statistics
-    print(f"\n  Summary:")
-    print(f"    Years with data: {years_with_data}/24")
-    print(f"    Total lung cancer deaths (2000-2023): {total_lung_cancer:,}")
+    logger.info(f"Summary:")
+    logger.info(f"Years with data: {years_with_data}/24")
+    logger.info(f"Total lung cancer deaths (2000-2023): {total_lung_cancer:,}")
 
     # Save results
     timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
@@ -647,7 +619,7 @@ def validate_mortality_data():
         'yearly_results': results,
         'column_variations': column_variations
     }, output_path)
-    print(f"  ✓ Results saved to: {output_path}")
+    logger.info(f"✓ Results saved to: {output_path}")
 
     return results
 
@@ -656,7 +628,7 @@ def validate_mortality_data():
 # POLLUTION VALIDATION FUNCTIONS
 # =============================================================================
 
-def validate_pollution_data():
+def validate_pollution_data() -> dict:
     """
     Validate Zenodo air pollution data (Jub et al.).
 
@@ -671,14 +643,14 @@ def validate_pollution_data():
     dict
         Validation results for pollution data
     """
-    print("\n" + "=" * 80)
-    print("POLLUTION DATA VALIDATION")
-    print("=" * 80)
+    logger.info("" + "=" * 80)
+    logger.info("POLLUTION DATA VALIDATION")
+    logger.info("=" * 80)
 
     filepath = get_pollution_file_path()
 
     if not filepath.exists():
-        print(f"  ✗ File not found: {filepath}")
+        logger.error(f"✗ File not found: {filepath}")
         return {
             'status': 'ERROR',
             'error': f'File not found: {filepath}'
@@ -746,31 +718,31 @@ def validate_pollution_data():
             'pollutant_statistics': pollutant_stats
         }
 
-        print(f"  Records: {results['total_records']}")
-        print(f"  Years: {results['years']}")
+        logger.info(f"Records: {results['total_records']}")
+        logger.info(f"Years: {results['years']}")
         print(f"  Alcaldías mapped: {results['alcaldias_mapped']}/16 "
               f"({results['mapping_success_rate']*100:.1f}% success)")
-        print(f"  Pollutants found: {results['pollutants_found']}")
+        logger.info(f"Pollutants found: {results['pollutants_found']}")
 
         if unmapped:
-            print(f"  ⚠️ Unmapped alcaldía names: {unmapped[:5]}...")
+            logger.warning(f"⚠️ Unmapped alcaldía names: {unmapped[:5]}...")
 
         for pol, stats in pollutant_stats.items():
             if stats['negative_values'] > 0:
-                print(f"  ⚠️ {pol}: {stats['negative_values']} negative values detected")
+                logger.warning(f"⚠️ {pol}: {stats['negative_values']} negative values detected")
 
     except Exception as e:
         results = {
             'status': 'ERROR',
             'error': str(e)
         }
-        print(f"  ✗ Error: {e}")
+        logger.error(f"✗ Error: {e}")
 
     # Save results
     timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
     output_path = LOGS_DIR / f'pollution_validation_{timestamp}.json'
     save_json(results, output_path)
-    print(f"  ✓ Results saved to: {output_path}")
+    logger.info(f"✓ Results saved to: {output_path}")
 
     return results
 
@@ -779,7 +751,7 @@ def validate_pollution_data():
 # MAIN VALIDATION PIPELINE
 # =============================================================================
 
-def run_all_validations():
+def run_all_validations() -> dict:
     """
     Run all data validations and generate comprehensive report.
 
@@ -788,11 +760,11 @@ def run_all_validations():
     dict
         Combined validation results for all data sources
     """
-    print("=" * 80)
-    print("DATA VALIDATION PIPELINE")
-    print("Project 1: Air Pollution and Cancer Mortality in CDMX")
-    print("=" * 80)
-    print(f"Started: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}")
+    logger.info("=" * 80)
+    logger.info("DATA VALIDATION PIPELINE")
+    logger.info("Project 1: Air Pollution and Cancer Mortality in CDMX")
+    logger.info("=" * 80)
+    logger.info(f"Started: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}")
 
     # Ensure directories exist
     LOGS_DIR.mkdir(parents=True, exist_ok=True)
@@ -833,14 +805,14 @@ def run_all_validations():
         'pollution_results': pollution_results
     }, summary_path)
 
-    print("\n" + "=" * 80)
-    print("VALIDATION COMPLETE")
-    print("=" * 80)
-    print(f"\n  Summary:")
-    print(f"    Census files: {census_ok}/{len(census_results)} passed")
-    print(f"    Mortality files: {mortality_ok}/{len(mortality_results)} passed")
-    print(f"    Pollution file: {pollution_results.get('status', 'UNKNOWN')}")
-    print(f"\n  Full report saved to: {summary_path}")
+    logger.info("" + "=" * 80)
+    logger.info("VALIDATION COMPLETE")
+    logger.info("=" * 80)
+    logger.info(f"Summary:")
+    logger.info(f"Census files: {census_ok}/{len(census_results)} passed")
+    logger.info(f"Mortality files: {mortality_ok}/{len(mortality_results)} passed")
+    logger.info(f"Pollution file: {pollution_results.get('status', 'UNKNOWN')}")
+    logger.info(f"Full report saved to: {summary_path}")
 
     return {
         'census': census_results,

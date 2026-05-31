@@ -55,6 +55,9 @@ sys.path.insert(0, str(PROJECT_ROOT))
 from src import ensure_directories, LOGS_DIR
 from src.utils import setup_logging
 
+import logging
+logger = logging.getLogger(__name__)
+
 
 # =============================================================================
 # HELPER FUNCTIONS
@@ -62,23 +65,23 @@ from src.utils import setup_logging
 
 def print_header(title):
     """Print a formatted header."""
-    print("\n" + "=" * 80)
-    print(f"PHASE: {title}")
-    print("=" * 80)
+    logger.info("" + "=" * 80)
+    logger.info(f"PHASE: {title}")
+    logger.info("=" * 80)
 
 
 def print_step(step_name):
     """Print a step header."""
-    print("\n" + "-" * 60)
-    print(f"STEP: {step_name}")
-    print("-" * 60)
+    logger.info("" + "-" * 60)
+    logger.info(f"STEP: {step_name}")
+    logger.info("-" * 60)
 
 
 def verify_output_files(expected_files):
     """Verify that expected output files were created."""
-    print("\n" + "-" * 60)
-    print("VERIFYING OUTPUT FILES")
-    print("-" * 60)
+    logger.info("" + "-" * 60)
+    logger.info("VERIFYING OUTPUT FILES")
+    logger.info("-" * 60)
 
     all_present = True
     file_sizes = {}
@@ -86,10 +89,10 @@ def verify_output_files(expected_files):
     for filepath in expected_files:
         if filepath.exists():
             size_mb = filepath.stat().st_size / (1024 * 1024)
-            print(f"  ✓ {filepath.name} ({size_mb:.2f} MB)")
+            logger.info(f"✓ {filepath.name} ({size_mb:.2f} MB)")
             file_sizes[str(filepath)] = size_mb
         else:
-            print(f"  ✗ {filepath.name} not found")
+            logger.error(f"✗ {filepath.name} not found")
             all_present = False
 
     return all_present, file_sizes
@@ -97,9 +100,9 @@ def verify_output_files(expected_files):
 
 def verify_analysis_outputs():
     """Verify that Phase 5 analysis outputs were created."""
-    print("\n" + "-" * 60)
-    print("VERIFYING ANALYSIS OUTPUTS")
-    print("-" * 60)
+    logger.info("" + "-" * 60)
+    logger.info("VERIFYING ANALYSIS OUTPUTS")
+    logger.info("-" * 60)
 
     from src import FIGURES_DIR, TABLES_DIR, MODELS_DIR
 
@@ -112,32 +115,32 @@ def verify_analysis_outputs():
     if FIGURES_DIR.exists():
         figures = list(FIGURES_DIR.glob('*.png'))
         output_summary['figures'] = [f.name for f in figures]
-        print(f"\n  Figures ({len(figures)}):")
+        logger.info(f"Figures ({len(figures)}):")
         for f in sorted(figures):
-            print(f"    - {f.name}")
+            logger.info(f"- {f.name}")
 
     if TABLES_DIR.exists():
         tables = list(TABLES_DIR.glob('*.csv'))
         output_summary['tables'] = [t.name for t in tables]
-        print(f"\n  Tables ({len(tables)}):")
+        logger.info(f"Tables ({len(tables)}):")
         for t in sorted(tables):
-            print(f"    - {t.name}")
+            logger.info(f"- {t.name}")
 
     if MODELS_DIR.exists():
         models = list(MODELS_DIR.glob('*.txt'))
         output_summary['models'] = [m.name for m in models]
-        print(f"\n  Models ({len(models)}):")
+        logger.info(f"Models ({len(models)}):")
         for m in sorted(models):
-            print(f"    - {m.name}")
+            logger.info(f"- {m.name}")
 
     return output_summary
 
 
 def verify_geospatial_outputs():
     """Verify that Phase 6 geospatial outputs were created."""
-    print("\n" + "-" * 60)
-    print("VERIFYING GEOSPATIAL OUTPUTS")
-    print("-" * 60)
+    logger.info("" + "-" * 60)
+    logger.info("VERIFYING GEOSPATIAL OUTPUTS")
+    logger.info("-" * 60)
 
     from src import FIGURES_DIR
 
@@ -147,38 +150,38 @@ def verify_geospatial_outputs():
         'bivariate': list(FIGURES_DIR.glob('bivariate_*.png'))
     }
 
-    print(f"\n  Interactive HTML maps ({len(geospatial_files['html'])}):")
+    logger.info(f"Interactive HTML maps ({len(geospatial_files['html'])}):")
     for f in sorted(geospatial_files['html']):
-        print(f"    - {f.name}")
+        logger.info(f"- {f.name}")
 
-    print(f"\n  Static PNG maps ({len(geospatial_files['png'])}):")
+    logger.info(f"Static PNG maps ({len(geospatial_files['png'])}):")
     for f in sorted(geospatial_files['png']):
-        print(f"    - {f.name}")
+        logger.info(f"- {f.name}")
 
-    print(f"\n  Bivariate maps ({len(geospatial_files['bivariate'])}):")
+    logger.info(f"Bivariate maps ({len(geospatial_files['bivariate'])}):")
     for f in sorted(geospatial_files['bivariate']):
-        print(f"    - {f.name}")
+        logger.info(f"- {f.name}")
 
     return geospatial_files
 
 
 def print_execution_summary(results):
     """Print execution summary."""
-    print("\n" + "=" * 80)
-    print("EXECUTION SUMMARY")
-    print("=" * 80)
+    logger.info("" + "=" * 80)
+    logger.info("EXECUTION SUMMARY")
+    logger.info("=" * 80)
 
     all_passed = all(results.values())
 
     if all_passed:
-        print("\n✓ All phases completed successfully!")
+        logger.info("✓ All phases completed successfully!")
     else:
-        print("\n⚠️ Some phases failed. Check the log for details.")
+        logger.warning("⚠️ Some phases failed. Check the log for details.")
 
-    print("\nPhase Results:")
+    logger.info("Phase Results:")
     for phase, status in results.items():
         icon = "✓" if status else "✗"
-        print(f"  {icon} {phase}")
+        logger.info(f"{icon} {phase}")
 
     return all_passed
 
@@ -196,7 +199,7 @@ def phase1_validation():
         results = run_all_validations()
         return True
     except Exception as e:
-        print(f"\n  ✗ Error in validation phase: {e}")
+        logger.error(f"✗ Error in validation phase: {e}")
         import traceback
         traceback.print_exc()
         return False
@@ -221,7 +224,7 @@ def phase2_harmonization():
 
         return True
     except Exception as e:
-        print(f"\n  ✗ Error in harmonization phase: {e}")
+        logger.error(f"✗ Error in harmonization phase: {e}")
         import traceback
         traceback.print_exc()
         return False
@@ -246,7 +249,7 @@ def phase3_mortality():
 
         return True
     except Exception as e:
-        print(f"\n  ✗ Error in mortality phase: {e}")
+        logger.error(f"✗ Error in mortality phase: {e}")
         import traceback
         traceback.print_exc()
         return False
@@ -273,7 +276,7 @@ def phase4_integration():
 
         return True
     except Exception as e:
-        print(f"\n  ✗ Error in integration phase: {e}")
+        logger.error(f"✗ Error in integration phase: {e}")
         import traceback
         traceback.print_exc()
         return False
@@ -307,7 +310,7 @@ def phase5_analysis():
 
         return True
     except Exception as e:
-        print(f"\n  ✗ Error in analysis phase: {e}")
+        logger.error(f"✗ Error in analysis phase: {e}")
         import traceback
         traceback.print_exc()
         return False
@@ -323,11 +326,11 @@ def phase6_geospatial():
         from src import ALCALDIAS_WITH_POLLUTION, ALCALDIAS_WITHOUT_POLLUTION, GEOSPATIAL_AVAILABLE
 
         if not GEOSPATIAL_AVAILABLE:
-            print("\n  ✗ Geospatial module not available. Install geopandas.")
+            logger.error("✗ Geospatial module not available. Install geopandas.")
             return False
 
-        print(f"\n  Alcaldías with pollution data: {len(ALCALDIAS_WITH_POLLUTION)}")
-        print(f"  Alcaldías excluded (no monitoring): {', '.join(ALCALDIAS_WITHOUT_POLLUTION)}")
+        logger.info(f"Alcaldías with pollution data: {len(ALCALDIAS_WITH_POLLUTION)}")
+        logger.info(f"Alcaldías excluded (no monitoring): {', '.join(ALCALDIAS_WITHOUT_POLLUTION)}")
 
         # Load analysis data
         df, _ = load_analysis_data()
@@ -335,13 +338,13 @@ def phase6_geospatial():
         # Create all geospatial visualizations
         figures = create_all_geospatial_visualizations(df)
 
-        print(f"\n  ✓ Created {len(figures)} geospatial visualizations")
+        logger.info(f"✓ Created {len(figures)} geospatial visualizations")
 
         verify_geospatial_outputs()
 
         return True
     except Exception as e:
-        print(f"\n  ✗ Error in geospatial phase: {e}")
+        logger.error(f"✗ Error in geospatial phase: {e}")
         import traceback
         traceback.print_exc()
         return False
@@ -399,14 +402,14 @@ Examples:
 
     # List phases and exit
     if args.list_phases:
-        print("\nAnalysis Pipeline Phases:")
-        print("-" * 40)
-        print("Phase 1: Data Validation (Census, Mortality, Pollution)")
-        print("Phase 2: Population Data Harmonization")
-        print("Phase 3: Mortality Data Processing")
-        print("Phase 4: Integration and Age Standardization")
-        print("Phase 5: Statistical Analysis and Visualization")
-        print("Phase 6: Geospatial Visualizations")
+        logger.info("Analysis Pipeline Phases:")
+        logger.info("-" * 40)
+        logger.info("Phase 1: Data Validation (Census, Mortality, Pollution)")
+        logger.info("Phase 2: Population Data Harmonization")
+        logger.info("Phase 3: Mortality Data Processing")
+        logger.info("Phase 4: Integration and Age Standardization")
+        logger.info("Phase 5: Statistical Analysis and Visualization")
+        logger.info("Phase 6: Geospatial Visualizations")
         return 0
 
     # Setup
@@ -414,23 +417,23 @@ Examples:
     log_file = setup_logging()
 
     # Print header
-    print("=" * 80)
-    print("MASTER ANALYSIS SCRIPT")
-    print("Project 1: Air Pollution and Cancer Mortality in CDMX")
-    print("=" * 80)
-    print(f"Project Root: {PROJECT_ROOT}")
-    print(f"Log File: {log_file}")
-    print(f"Started: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}")
+    logger.info("=" * 80)
+    logger.info("MASTER ANALYSIS SCRIPT")
+    logger.info("Project 1: Air Pollution and Cancer Mortality in CDMX")
+    logger.info("=" * 80)
+    logger.info(f"Project Root: {PROJECT_ROOT}")
+    logger.info(f"Log File: {log_file}")
+    logger.info(f"Started: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}")
 
     if args.phase:
-        print(f"\nRunning only Phase {args.phase}")
+        logger.info(f"Running only Phase {args.phase}")
     if args.phases:
         phases_list = [int(p.strip()) for p in args.phases.split(',')]
-        print(f"\nRunning phases: {phases_list}")
+        logger.info(f"Running phases: {phases_list}")
     if args.from_phase:
-        print(f"\nRunning from Phase {args.from_phase} onward")
+        logger.info(f"Running from Phase {args.from_phase} onward")
     if args.skip_validation:
-        print("\nSkipping validation phase (Phase 1)")
+        logger.info("Skipping validation phase (Phase 1)")
 
     results = {}
 
@@ -487,39 +490,39 @@ Examples:
     all_passed = print_execution_summary(results)
 
     # Show output file locations
-    print("\n" + "-" * 60)
-    print("OUTPUT FILES LOCATION")
-    print("-" * 60)
+    logger.info("" + "-" * 60)
+    logger.info("OUTPUT FILES LOCATION")
+    logger.info("-" * 60)
     from src import (
         CENSUS_RAW_DIR, MORTALITY_RAW_DIR, POLLUTION_RAW_DIR,
         POPULATION_PROCESSED_DIR, MORTALITY_PROCESSED_DIR, INTEGRATED_PROCESSED_DIR,
         FIGURES_DIR, TABLES_DIR, MODELS_DIR, LOGS_DIR
     )
 
-    print(f"\n  Raw data:")
-    print(f"    Census:    {CENSUS_RAW_DIR}")
-    print(f"    Mortality: {MORTALITY_RAW_DIR}")
-    print(f"    Pollution: {POLLUTION_RAW_DIR}")
-    print(f"\n  Processed data:")
-    print(f"    Population: {POPULATION_PROCESSED_DIR}")
-    print(f"    Mortality:  {MORTALITY_PROCESSED_DIR}")
-    print(f"    Integrated: {INTEGRATED_PROCESSED_DIR}")
-    print(f"\n  Outputs:")
-    print(f"    Figures:    {FIGURES_DIR}")
-    print(f"    Tables:     {TABLES_DIR}")
-    print(f"    Models:     {MODELS_DIR}")
-    print(f"\n  Logs:        {LOGS_DIR}")
+    logger.info(f"Raw data:")
+    logger.info(f"Census:    {CENSUS_RAW_DIR}")
+    logger.info(f"Mortality: {MORTALITY_RAW_DIR}")
+    logger.info(f"Pollution: {POLLUTION_RAW_DIR}")
+    logger.info(f"Processed data:")
+    logger.info(f"Population: {POPULATION_PROCESSED_DIR}")
+    logger.info(f"Mortality:  {MORTALITY_PROCESSED_DIR}")
+    logger.info(f"Integrated: {INTEGRATED_PROCESSED_DIR}")
+    logger.info(f"Outputs:")
+    logger.info(f"Figures:    {FIGURES_DIR}")
+    logger.info(f"Tables:     {TABLES_DIR}")
+    logger.info(f"Models:     {MODELS_DIR}")
+    logger.info(f"Logs:        {LOGS_DIR}")
 
     # Show next steps if successful
     if all_passed:
-        print("\n" + "-" * 60)
-        print("NEXT STEPS")
-        print("-" * 60)
-        print("\n  Analysis complete! Review the results:")
-        print(f"    - Interactive maps: {FIGURES_DIR}/*.html")
-        print(f"    - Static figures:   {FIGURES_DIR}/*.png")
-        print(f"    - Tables:           {TABLES_DIR}/*.csv")
-        print(f"    - Models:           {MODELS_DIR}/*.txt")
+        logger.info("" + "-" * 60)
+        logger.info("NEXT STEPS")
+        logger.info("-" * 60)
+        logger.info("Analysis complete! Review the results:")
+        logger.info(f"- Interactive maps: {FIGURES_DIR}/*.html")
+        logger.info(f"- Static figures:   {FIGURES_DIR}/*.png")
+        logger.info(f"- Tables:           {TABLES_DIR}/*.csv")
+        logger.info(f"- Models:           {MODELS_DIR}/*.txt")
 
     # Log completion
     with open(log_file, 'a', encoding='utf-8') as f:
@@ -528,9 +531,9 @@ Examples:
         f.write(f"Exit status: {'SUCCESS' if all_passed else 'PARTIAL/FAILURE'}\n")
         f.write("=" * 80 + "\n")
 
-    print(f"\nLog file: {log_file}")
-    print(f"Completed: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}")
-    print("=" * 80)
+    logger.info(f"Log file: {log_file}")
+    logger.info(f"Completed: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}")
+    logger.info("=" * 80)
 
     return 0 if all_passed else 1
 

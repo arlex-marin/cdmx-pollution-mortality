@@ -18,6 +18,9 @@ from .utils import (
 )
 from . import MORTALITY_PROCESSED_DIR, LOGS_DIR, ensure_directories
 
+import logging
+logger = logging.getLogger(__name__)
+
 
 def map_edad_to_age_group(edad):
     """Map DGIS edad code to harmonized age group."""
@@ -66,11 +69,11 @@ def map_sexo_to_sex(sexo):
         return None
 
 
-def process_mortality_data():
+def process_mortality_data() -> pd.DataFrame | None:
     """Process all mortality files and create harmonized dataset."""
-    print("\n" + "=" * 70)
-    print("MORTALITY DATA PROCESSING")
-    print("=" * 70)
+    logger.info("" + "=" * 70)
+    logger.info("MORTALITY DATA PROCESSING")
+    logger.info("=" * 70)
 
     ensure_directories()
 
@@ -82,10 +85,10 @@ def process_mortality_data():
     for year in range(2000, 2023):
         filepath = get_mortality_file_path(year)
         if not filepath.exists():
-            print(f"  ⚠️ File not found for {year}")
+            logger.warning(f"⚠️ File not found for {year}")
             continue
 
-        print(f"  Processing {year}...")
+        logger.info(f"Processing {year}...")
 
         try:
             df = pd.read_csv(filepath, low_memory=False)
@@ -104,7 +107,7 @@ def process_mortality_data():
                 if not causa_col: missing.append('CAUSA_DEF')
                 if not sexo_col: missing.append('SEXO')
                 if not edad_col: missing.append('EDAD')
-                print(f"    ✗ Missing columns: {missing}")
+                logger.error(f"✗ Missing columns: {missing}")
                 continue
 
             column_mapping_by_year[year] = {
@@ -126,7 +129,7 @@ def process_mortality_data():
             ].copy()
 
             if len(df_cdmx) == 0:
-                print(f"    ⚠️ No CDMX alcaldía deaths")
+                logger.warning(f"⚠️ No CDMX alcaldía deaths")
                 continue
 
             # Filter to lung cancer deaths
@@ -135,7 +138,7 @@ def process_mortality_data():
             df_lung = df_cdmx[df_cdmx['is_lung_cancer']].copy()
 
             if len(df_lung) == 0:
-                print(f"    ⚠️ No lung cancer deaths")
+                logger.warning(f"⚠️ No lung cancer deaths")
                 continue
 
             # Map age and sex
@@ -151,7 +154,7 @@ def process_mortality_data():
             df_valid = df_lung.dropna(subset=['age_group', 'sex', 'alcaldia'])
 
             if len(df_valid) == 0:
-                print(f"    ⚠️ No valid lung cancer deaths after mapping")
+                logger.warning(f"⚠️ No valid lung cancer deaths after mapping")
                 continue
 
             # Aggregate deaths by alcaldía, age group, and sex
@@ -164,14 +167,14 @@ def process_mortality_data():
             years_processed.append(year)
             total_lung_cancer += len(df_valid)
 
-            print(f"    Lung cancer deaths: {len(df_valid):,}")
+            logger.info(f"Lung cancer deaths: {len(df_valid):,}")
 
         except Exception as e:
-            print(f"    ✗ Error: {e}")
+            logger.error(f"✗ Error: {e}")
             continue
 
     if not all_deaths:
-        print("\n  ERROR: No data processed")
+        logger.info("ERROR: No data processed")
         return None
 
     # Combine all years
@@ -198,15 +201,15 @@ def process_mortality_data():
     df_final['deaths'] = df_final['deaths'].fillna(0).astype(int)
     df_final = df_final.sort_values(['alcaldia', 'year', 'age_group', 'sex']).reset_index(drop=True)
 
-    print(f"\n  Dataset Summary:")
-    print(f"    Total records: {len(df_final):,}")
-    print(f"    Years covered: {df_final['year'].min()} - {df_final['year'].max()}")
-    print(f"    Total lung cancer deaths: {df_final['deaths'].sum():,}")
+    logger.info(f"Dataset Summary:")
+    logger.info(f"Total records: {len(df_final):,}")
+    logger.info(f"Years covered: {df_final['year'].min()} - {df_final['year'].max()}")
+    logger.info(f"Total lung cancer deaths: {df_final['deaths'].sum():,}")
 
     # Save long format
     output_path = MORTALITY_PROCESSED_DIR / 'cdmx_lung_cancer_deaths_2000_2022.csv'
     df_final.to_csv(output_path, index=False)
-    print(f"\n  ✓ Saved to: {output_path}")
+    logger.info(f"✓ Saved to: {output_path}")
 
     # Save wide format
     df_wide = df_final.pivot_table(
@@ -217,7 +220,7 @@ def process_mortality_data():
     ).reset_index()
     output_path_wide = MORTALITY_PROCESSED_DIR / 'cdmx_lung_cancer_deaths_2000_2022_wide.csv'
     df_wide.to_csv(output_path_wide, index=False)
-    print(f"  ✓ Saved wide format to: {output_path_wide}")
+    logger.info(f"✓ Saved wide format to: {output_path_wide}")
 
     # Save metadata
     metadata = {
@@ -232,7 +235,7 @@ def process_mortality_data():
 
     metadata_path = MORTALITY_PROCESSED_DIR / 'cdmx_lung_cancer_metadata.json'
     save_json(metadata, metadata_path)
-    print(f"  ✓ Metadata saved to: {metadata_path}")
+    logger.info(f"✓ Metadata saved to: {metadata_path}")
 
     return df_final
 

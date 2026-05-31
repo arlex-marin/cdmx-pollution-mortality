@@ -28,6 +28,9 @@ from .utils import (
 )
 from . import INTEGRATED_PROCESSED_DIR, LOGS_DIR, ensure_directories
 
+import logging
+logger = logging.getLogger(__name__)
+
 # =============================================================================
 # ANALYSIS YEAR RANGE
 # =============================================================================
@@ -143,7 +146,7 @@ def map_alcaldia_name(name):
     return None
 
 
-def load_population_data():
+def load_population_data() -> pd.DataFrame:
     """
     Load harmonized population data.
 
@@ -166,11 +169,11 @@ def load_population_data():
         )
 
     df = pd.read_csv(filepath)
-    print(f"  Population: {len(df):,} records, {df['year'].min()}-{df['year'].max()}")
+    logger.info(f"Population: {len(df):,} records, {df['year'].min()}-{df['year'].max()}")
     return df
 
 
-def load_mortality_data():
+def load_mortality_data() -> pd.DataFrame:
     """
     Load processed mortality data.
 
@@ -194,11 +197,11 @@ def load_mortality_data():
 
     df = pd.read_csv(filepath)
     total_deaths = df['deaths'].sum()
-    print(f"  Mortality: {len(df):,} records, {total_deaths:,} total lung cancer deaths")
+    logger.info(f"Mortality: {len(df):,} records, {total_deaths:,} total lung cancer deaths")
     return df
 
 
-def load_pollution_data():
+def load_pollution_data() -> pd.DataFrame:
     """
     Load air pollution data from Zenodo.
 
@@ -243,19 +246,19 @@ def load_pollution_data():
     unique_mapped = df['alcaldia'].dropna().nunique()
     years_range = f"{df['year'].min()}-{df['year'].max()}" if 'year' in df.columns else 'unknown'
 
-    print(f"  Pollution: {len(df):,} records, {years_range}")
-    print(f"    Alcaldías mapped: {unique_mapped}/16 ({mapped_count} records)")
+    logger.info(f"Pollution: {len(df):,} records, {years_range}")
+    logger.info(f"Alcaldías mapped: {unique_mapped}/16 ({mapped_count} records)")
 
     # Check for missing alcaldías
     if unique_mapped < 16:
         mapped_set = set(df['alcaldia'].dropna().unique())
         missing = set(ALCALDIA_CODES.values()) - mapped_set
-        print(f"    ⚠️ Alcaldías without pollution data: {sorted(missing)}")
+        logger.warning(f"⚠️ Alcaldías without pollution data: {sorted(missing)}")
 
     return df
 
 
-def load_analysis_data():
+def load_analysis_data() -> tuple[pd.DataFrame, pd.DataFrame]:
     """
     Load the final analytical dataset.
 
@@ -290,13 +293,13 @@ def load_analysis_data():
     df['alcaldia_code'] = df['alcaldia'].map(ALCALDIA_NAME_TO_CODE).astype(int)
     df_pm25['alcaldia_code'] = df_pm25['alcaldia'].map(ALCALDIA_NAME_TO_CODE).astype(int)
 
-    print(f"  Loaded analysis data: {len(df)} records")
-    print(f"  Records with PM2.5: {len(df_pm25)}")
+    logger.info(f"Loaded analysis data: {len(df)} records")
+    logger.info(f"Records with PM2.5: {len(df_pm25)}")
 
     return df, df_pm25
 
 
-def merge_population_mortality(df_pop, df_mort):
+def merge_population_mortality(df_pop: pd.DataFrame, df_mort: pd.DataFrame) -> pd.DataFrame:
     """
     Merge population and mortality data.
 
@@ -341,14 +344,14 @@ def merge_population_mortality(df_pop, df_mort):
     total_deaths = df_merged['deaths'].sum()
     years_covered = f"{df_merged['year'].min()}-{df_merged['year'].max()}"
 
-    print(f"  Merged: {len(df_merged):,} records, {years_covered}")
-    print(f"    Total person-years: {format_number(total_pop)}")
-    print(f"    Total lung cancer deaths: {format_number(total_deaths)}")
+    logger.info(f"Merged: {len(df_merged):,} records, {years_covered}")
+    logger.info(f"Total person-years: {format_number(total_pop)}")
+    logger.info(f"Total lung cancer deaths: {format_number(total_deaths)}")
 
     return df_merged
 
 
-def calculate_crude_rates(df):
+def calculate_crude_rates(df: pd.DataFrame) -> pd.DataFrame:
     """
     Calculate crude mortality rates per 100,000 population.
 
@@ -371,7 +374,7 @@ def calculate_crude_rates(df):
     return df
 
 
-def calculate_age_standardized_rates(df):
+def calculate_age_standardized_rates(df: pd.DataFrame) -> pd.DataFrame:
     """
     Calculate age-standardized mortality rates using WHO standard population.
 
@@ -388,7 +391,7 @@ def calculate_age_standardized_rates(df):
     pd.DataFrame
         Dataset with age-standardized rates by alcaldía, year, and sex
     """
-    print("\n  Calculating age-standardized rates...")
+    logger.info("Calculating age-standardized rates...")
 
     df = df.copy()
 
@@ -452,12 +455,12 @@ def calculate_age_standardized_rates(df):
         warnings.warn("Negative age-standardized rates detected")
         df_asr['age_standardized_rate'] = df_asr['age_standardized_rate'].clip(lower=0)
 
-    print(f"    Standardized rates calculated for {len(df_asr)} alcaldía-year-sex combinations")
+    logger.info(f"Standardized rates calculated for {len(df_asr)} alcaldía-year-sex combinations")
 
     return df_asr
 
 
-def merge_with_pollution(df_asr, df_poll):
+def merge_with_pollution(df_asr: pd.DataFrame, df_poll: pd.DataFrame) -> pd.DataFrame:
     """
     Merge standardized mortality rates with air pollution data.
 
@@ -473,7 +476,7 @@ def merge_with_pollution(df_asr, df_poll):
     pd.DataFrame
         Final analytical dataset with mortality rates and pollution data
     """
-    print("\n  Merging with pollution data...")
+    logger.info("Merging with pollution data...")
 
     # Aggregate pollution data (in case of multiple measurements per year)
     poll_cols = ['alcaldia', 'year'] + [p for p in POLLUTANTS if p in df_poll.columns]
@@ -498,16 +501,16 @@ def merge_with_pollution(df_asr, df_poll):
     records_with_pollution = df_final['pm25'].notna().sum()
     alcaldias_with_data = df_final[df_final['pm25'].notna()]['alcaldia'].nunique()
 
-    print(f"    Final dataset: {total_records} records")
-    print(f"    Years: {df_final['year'].min()}-{df_final['year'].max()}")
-    print(f"    Records with pollution data: {records_with_pollution}")
-    print(f"    Alcaldías with pollution data: {alcaldias_with_data}/16")
+    logger.info(f"Final dataset: {total_records} records")
+    logger.info(f"Years: {df_final['year'].min()}-{df_final['year'].max()}")
+    logger.info(f"Records with pollution data: {records_with_pollution}")
+    logger.info(f"Alcaldías with pollution data: {alcaldias_with_data}/16")
 
     # Report excluded alcaldías
     alcaldias_in_final = set(df_final[df_final['pm25'].notna()]['alcaldia'].unique())
     excluded = set(ALCALDIA_CODES.values()) - alcaldias_in_final
     if excluded:
-        print(f"    ⚠️ Excluded from analysis (no pollution data): {sorted(excluded)}")
+        logger.warning(f"⚠️ Excluded from analysis (no pollution data): {sorted(excluded)}")
 
     return df_final
 
@@ -558,7 +561,7 @@ def validate_integration_outputs(df_final):
     # Report validation results
     all_passed = all(validation['checks'].values())
     if all_passed:
-        print("\n  ✓ All validation checks passed")
+        logger.info("✓ All validation checks passed")
     else:
         failed = [k for k, v in validation['checks'].items() if not v]
         warnings.warn(f"Validation checks failed: {failed}")
@@ -566,7 +569,7 @@ def validate_integration_outputs(df_final):
     return validation
 
 
-def integrate_data():
+def integrate_data() -> pd.DataFrame:
     """
     Main integration pipeline.
 
@@ -585,52 +588,52 @@ def integrate_data():
     pd.DataFrame
         Final analytical dataset
     """
-    print("\n" + "=" * 70)
-    print("DATA INTEGRATION AND AGE STANDARDIZATION")
-    print("=" * 70)
+    logger.info("" + "=" * 70)
+    logger.info("DATA INTEGRATION AND AGE STANDARDIZATION")
+    logger.info("=" * 70)
 
     ensure_directories()
 
     # Phase 1: Load all data
-    print("\nPhase 1: Loading data...")
+    logger.info("Phase 1: Loading data...")
     df_pop = load_population_data()
     df_mort = load_mortality_data()
     df_poll = load_pollution_data()
 
     # Phase 2: Merge population and mortality
-    print("\nPhase 2: Merging population and mortality...")
+    logger.info("Phase 2: Merging population and mortality...")
     df_merged = merge_population_mortality(df_pop, df_mort)
 
     # Phase 3: Calculate rates
-    print("\nPhase 3: Calculating mortality rates...")
+    logger.info("Phase 3: Calculating mortality rates...")
     df_merged = calculate_crude_rates(df_merged)
     df_asr = calculate_age_standardized_rates(df_merged)
 
     # Phase 4: Integrate with pollution
-    print("\nPhase 4: Integrating with pollution data...")
+    logger.info("Phase 4: Integrating with pollution data...")
     df_final = merge_with_pollution(df_asr, df_poll)
 
     # Phase 5: Validation
-    print("\nPhase 5: Validating outputs...")
+    logger.info("Phase 5: Validating outputs...")
     validation_results = validate_integration_outputs(df_final)
 
     # Phase 6: Save outputs
-    print("\nPhase 6: Saving outputs...")
+    logger.info("Phase 6: Saving outputs...")
 
     # Save merged population-mortality dataset
     output_merged = INTEGRATED_PROCESSED_DIR / 'cdmx_population_mortality_merged_2000_2022.csv'
     df_merged.to_csv(output_merged, index=False)
-    print(f"  ✓ Merged data: {output_merged.name} ({len(df_merged):,} records)")
+    logger.info(f"✓ Merged data: {output_merged.name} ({len(df_merged):,} records)")
 
     # Save mortality rates
     output_rates = INTEGRATED_PROCESSED_DIR / 'cdmx_mortality_rates_2000_2022.csv'
     df_asr.to_csv(output_rates, index=False)
-    print(f"  ✓ Mortality rates: {output_rates.name} ({len(df_asr):,} records)")
+    logger.info(f"✓ Mortality rates: {output_rates.name} ({len(df_asr):,} records)")
 
     # Save final analytical dataset
     output_final = INTEGRATED_PROCESSED_DIR / 'cdmx_analysis_dataset_2004_2022.csv'
     df_final.to_csv(output_final, index=False)
-    print(f"  ✓ Final dataset: {output_final.name} ({len(df_final):,} records)")
+    logger.info(f"✓ Final dataset: {output_final.name} ({len(df_final):,} records)")
 
     # Save wide format for easier analysis
     df_wide = df_final.pivot_table(
@@ -641,10 +644,10 @@ def integrate_data():
     df_wide.columns = ['_'.join(col).strip('_') for col in df_wide.columns.values]
     output_wide = INTEGRATED_PROCESSED_DIR / 'cdmx_analysis_dataset_wide.csv'
     df_wide.to_csv(output_wide, index=False)
-    print(f"  ✓ Wide format: {output_wide.name}")
+    logger.info(f"✓ Wide format: {output_wide.name}")
 
     # Phase 7: Generate metadata
-    print("\nPhase 7: Generating metadata...")
+    logger.info("Phase 7: Generating metadata...")
 
     # Calculate summary statistics for metadata
     both_sex = df_final[df_final['sex'] == 'Both']
@@ -674,18 +677,18 @@ def integrate_data():
 
     metadata_path = INTEGRATED_PROCESSED_DIR / 'integration_metadata.json'
     save_json(metadata, metadata_path)
-    print(f"  ✓ Metadata: {metadata_path.name}")
+    logger.info(f"✓ Metadata: {metadata_path.name}")
 
     # Summary
-    print("\n" + "=" * 70)
-    print("INTEGRATION COMPLETE")
-    print("=" * 70)
-    print(f"\n  Final Dataset Summary:")
-    print(f"    Analysis years: {df_final['year'].min()}-{df_final['year'].max()}")
-    print(f"    Total records: {len(df_final):,}")
-    print(f"    Alcaldías with pollution data: {len(ALCALDIAS_WITH_POLLUTION)}")
-    print(f"    Alcaldías excluded: {len(ALCALDIAS_WITHOUT_POLLUTION)}")
-    print(f"    Total lung cancer deaths (2004-2022): {int(df_final[df_final['sex']=='Both']['deaths'].sum()):,}")
+    logger.info("" + "=" * 70)
+    logger.info("INTEGRATION COMPLETE")
+    logger.info("=" * 70)
+    logger.info(f"Final Dataset Summary:")
+    logger.info(f"Analysis years: {df_final['year'].min()}-{df_final['year'].max()}")
+    logger.info(f"Total records: {len(df_final):,}")
+    logger.info(f"Alcaldías with pollution data: {len(ALCALDIAS_WITH_POLLUTION)}")
+    logger.info(f"Alcaldías excluded: {len(ALCALDIAS_WITHOUT_POLLUTION)}")
+    logger.info(f"Total lung cancer deaths (2004-2022): {int(df_final[df_final['sex']=='Both']['deaths'].sum()):,}")
 
     return df_final
 

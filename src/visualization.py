@@ -14,16 +14,19 @@ from scipy.stats import pearsonr
 from .utils import format_pvalue, POLLUTANTS
 from . import FIGURES_DIR, TABLES_DIR, ensure_directories
 
+import logging
+logger = logging.getLogger(__name__)
+
 # Set style
 plt.style.use('seaborn-v0_8-whitegrid')
 sns.set_palette("husl")
 
 
-def save_figure(fig, name):
+def save_figure(fig, name: str) -> None:
     """Save figure to PNG and SVG."""
     fig.savefig(FIGURES_DIR / f'{name}.png', dpi=300, bbox_inches='tight')
     fig.savefig(FIGURES_DIR / f'{name}.svg', bbox_inches='tight')
-    print(f"  ✓ Saved: {name}")
+    logger.info(f"✓ Saved: {name}")
 
 
 def plot_temporal_trends(df_pm25):
@@ -237,11 +240,11 @@ def plot_correlation_heatmap(df_pm25):
     plt.close()
 
 
-def create_all_visualizations(df_pm25, models=None, sex_models=None):
+def create_all_visualizations(df_pm25: pd.DataFrame, models: dict | None = None, sex_models: dict | None = None) -> None:
     """Create all publication-quality visualizations."""
-    print("\n" + "=" * 70)
-    print("CREATING VISUALIZATIONS")
-    print("=" * 70)
+    logger.info("" + "=" * 70)
+    logger.info("CREATING VISUALIZATIONS")
+    logger.info("=" * 70)
     
     ensure_directories()
     
@@ -257,4 +260,4 @@ def create_all_visualizations(df_pm25, models=None, sex_models=None):
     if sex_models:
         plot_sex_specific_effects(sex_models)
     
-    print(f"\n  ✓ All figures saved to: {FIGURES_DIR}")
+    logger.info(f"✓ All figures saved to: {FIGURES_DIR}")

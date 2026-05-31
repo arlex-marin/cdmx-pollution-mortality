@@ -15,6 +15,10 @@ import json
 import unicodedata
 import warnings
 from pathlib import Path
+import logging
+
+logger = logging.getLogger(__name__)
+
 
 def get_project_root() -> Path:
     """Return project root directory (parent of src/)."""
@@ -26,7 +30,7 @@ from . import (
     OUTPUTS_DIR, LOGS_DIR
 )
 
-def safe_int(value):
+def safe_int(value: object) -> int:
     """Safely convert value to integer, handling strings and special characters."""
     if pd.isna(value):
         return 0
@@ -43,7 +47,7 @@ def safe_int(value):
     return 0
 
 
-def normalize_string(s):
+def normalize_string(s: object) -> str:
     """Normalize string by removing accents and converting to lowercase."""
     if pd.isna(s):
         return ""
@@ -52,19 +56,19 @@ def normalize_string(s):
     return s.lower()
 
 
-def format_number(n):
+def format_number(n: object) -> str:
     """Format number with commas."""
     return f"{n:,.0f}"
 
 
-def format_percent(value, total):
+def format_percent(value: object, total: object) -> str:
     """Format percentage."""
     if total > 0:
         return f"{value/total*100:.2f}%"
     return "0.00%"
 
 
-def format_pvalue(p):
+def format_pvalue(p: float) -> str:
     """Format p-value with significance stars."""
     if p < 0.001:
         return "p < 0.001 ***"
@@ -76,7 +80,7 @@ def format_pvalue(p):
         return f"p = {p:.3f}"
 
 
-def clamp_proportion(value, min_val=0.0, max_val=1.0, default=0.52):
+def clamp_proportion(value: object, min_val: float = 0.0, max_val: float = 1.0, default: float = 0.52) -> float:
     """Clamp a proportion value to valid range."""
     if pd.isna(value):
         return default
@@ -125,6 +129,68 @@ def read_csv_flexible(filepath, encodings_to_try=None):
     raise ValueError(f"Could not read {filepath} with any encoding")
 
 
+def read_csv_with_encoding(filepath, context="file", encodings_to_try=None):
+    """
+    Read a CSV file with automatic encoding detection and fallback.
+
+    Tries multiple encodings (utf-8, latin-1, cp1252, iso-8859-1) and falls back
+    to a flexible CSV reader for malformed files. Returns the dataframe and the
+    encoding that worked.
+
+    Parameters:
+    -----------
+    filepath : Path
+        Path to the CSV file.
+    context : str
+        Description for error messages (e.g., the census year).
+    encodings_to_try : list of str, optional
+        Encodings to attempt. Defaults to ['utf-8', 'latin-1', 'cp1252', 'iso-8859-1'].
+
+    Returns:
+    --------
+    tuple
+        (pd.DataFrame, str) — loaded dataframe and successful encoding.
+
+    Raises:
+    -------
+    ValueError
+        If file cannot be read with any encoding or is empty.
+    """
+    import warnings as _warnings
+
+    if encodings_to_try is None:
+        encodings_to_try = ['utf-8', 'latin-1', 'cp1252', 'iso-8859-1']
+
+    df = None
+    successful_encoding = None
+
+    for encoding in encodings_to_try:
+        try:
+            df = pd.read_csv(filepath, encoding=encoding, engine='c', on_bad_lines='skip')
+            successful_encoding = encoding
+            break
+        except UnicodeDecodeError:
+            continue
+        except Exception as e:
+            _warnings.warn(f"Unexpected error with encoding {encoding} for {context}: {e}")
+            continue
+
+    if df is None:
+        # Fall back to flexible reader for malformed CSV files
+        try:
+            df, successful_encoding = read_csv_flexible(filepath)
+        except Exception as e:
+            raise ValueError(
+                f"Could not read {filepath} for {context} with any encoding. "
+                f"Last error: {e}"
+            )
+
+    if df is None or len(df) == 0:
+        raise ValueError(f"File {filepath} for {context} appears to be empty")
+
+    return df, successful_encoding
+
+
 def setup_logging(prefix="analysis"):
     """
     Setup logging to capture both stdout and stderr.
@@ -144,7 +210,7 @@ def setup_logging(prefix="analysis"):
     return log_file
 
 
-def save_json(data, filepath):
+def save_json(data: object, filepath: Path) -> None:
     """Save data as JSON with proper encoding."""
     def convert_to_serializable(obj):
         if isinstance(obj, (np.integer, np.int64)):
@@ -168,7 +234,7 @@ def save_json(data, filepath):
         json.dump(data_serializable, f, indent=2, ensure_ascii=False)
 
 
-def load_json(filepath):
+def load_json(filepath: Path) -> dict:
     """Load JSON file."""
     with open(filepath, 'r', encoding='utf-8') as f:
         return json.load(f)
