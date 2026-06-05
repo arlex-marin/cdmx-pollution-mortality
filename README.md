@@ -3,6 +3,7 @@
 [![License: CC BY 4.0](https://img.shields.io/badge/License-CC%20BY%204.0-lightgrey.svg)](https://creativecommons.org/licenses/by/4.0/)
 [![Python 3.11](https://img.shields.io/badge/python-3.11-blue.svg)](https://www.python.org/downloads/)
 [![Quality Assessment](https://img.shields.io/badge/quality-A%2B%20(97%2F100)-brightgreen.svg)](docs/quality_assessment.md)
+[![OSF](https://img.shields.io/badge/OSF-Data-blue)](https://osf.io/78tpn/)
 
 **Author:** Arlex Marín
 **Date:** April 2026
@@ -246,9 +247,10 @@ Total execution time: ~3.5 minutes on standard hardware
 
 | Data Type | Source | Temporal Coverage | Access |
 |:---|:---|:---|:---|
+| **Processed Data** (derived datasets) | This study (Marín, 2026) | 2000-2022 | [OSF: 78tpn](https://osf.io/78tpn/) |
 | Population | INEGI Censuses | 2000, 2005, 2010, 2020 | [SCITEL](https://www.inegi.org.mx/app/scitel/) |
-| Mortality | Zenodo (Crespo-Sanchez Melesio, 2024) | 2000-2023 | [DOI: 10.5281/zenodo.10894651](https://doi.org/10.5281/zenodo.10894651) |
-| Air Pollution | Zenodo (Crespo-Sanchez Melesio, 2024) | 1986-2022 | [DOI: 10.5281/zenodo.10894651](https://doi.org/10.5281/zenodo.10894651) |
+| Mortality (raw) | Zenodo (Crespo-Sanchez Melesio, 2024) | 2000-2023 | [DOI: 10.5281/zenodo.10894651](https://doi.org/10.5281/zenodo.10894651) |
+| Air Pollution (raw) | Zenodo (Crespo-Sanchez Melesio, 2024) | 1986-2022 | [DOI: 10.5281/zenodo.10894651](https://doi.org/10.5281/zenodo.10894651) |
 | Geospatial | INEGI Marco Geoestadístico | 2025 | [INEGI](https://www.inegi.org.mx/app/biblioteca/) |
 
 ---
@@ -336,10 +338,10 @@ If you use this code or data in your research, please cite:
 > Marín, A. (2026). *Geospatial Analysis of Air Pollution and Cancer Mortality in Mexico City* (Version 1.0.0) [Source code]. GitHub. https://github.com/arlex-marin/cdmx-pollution-mortality
 
 **Data:**
-> Marín, A. (2026). *Processed Data: Air Pollution and Lung Cancer Mortality in Mexico City* (Version 1.0.0) [Data set]. Zenodo. https://doi.org/10.5281/zenodo.19712908
+> Marín, A. (2026). *Processed Data: Air Pollution and Lung Cancer Mortality in Mexico City (2004–2022)* [Data set]. OSF. https://osf.io/78tpn/
 
 **Report:**
-> Marín, A. (2026). *Final Report: Geospatial Analysis of Air Pollution and Cancer Mortality in Mexico City* (Version 1.0). Zenodo. https://doi.org/10.5281/zenodo.19712908
+> Marín, A. (2026). *Final Report: Geospatial Analysis of Air Pollution and Cancer Mortality in Mexico City* (Version 1.0). https://github.com/arlex-marin/cdmx-pollution-mortality
 
 ---
 

@@ -479,9 +479,9 @@ This study provides robust, population-level evidence of a positive association 
 
 ### 6.1 Processed Data
 
-The complete processed dataset is available on Zenodo:
+The complete processed dataset is available on OSF:
 
-> Marín-García, A. (2026). *Processed Data: Air Pollution and Lung Cancer Mortality in Mexico City* (Version 1.0.0) [Data set]. Zenodo. https://doi.org/10.5281/zenodo.19712908
+> Marín-García, A. (2026). *Processed Data: Air Pollution and Lung Cancer Mortality in Mexico City (2004–2022)* [Data set]. OSF. https://osf.io/78tpn/
 
 ### 6.2 Analysis Code
 
@@ -539,7 +539,7 @@ The author acknowledges the following data providers:
 This report and all associated materials are licensed under the **Creative Commons Attribution 4.0 International License (CC BY 4.0)**.
 
 **Citation:**
-> Marín-García, A. (2026). *Final Report: Geospatial Analysis of Air Pollution and Cancer Mortality in Mexico City* (Version 1.0). Zenodo. https://doi.org/10.5281/zenodo.19712908
+> Marín-García, A. (2026). *Final Report: Geospatial Analysis of Air Pollution and Cancer Mortality in Mexico City* (Version 1.0). GitHub. https://github.com/arlex-marin/cdmx-pollution-mortality
 
 ---
 
